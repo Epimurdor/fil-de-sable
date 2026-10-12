@@ -11,14 +11,14 @@ import type { CustomConfig } from "@/lib/types";
 
 const chip = (active: boolean) =>
   cn(
-    "rounded-md border px-3.5 py-2 text-sm transition-colors",
-    active ? "border-ink bg-ink text-paper" : "border-line-2 bg-white text-ink-2 hover:border-ink",
+    "rounded-full border px-4 py-2 text-sm transition-[color,background-color,border-color,box-shadow] duration-200",
+    active ? "border-accent bg-accent text-white shadow-soft" : "border-line-2 bg-white text-ink-2 hover:border-accent hover:text-ink",
   );
 
 function Step({ title, hint, children }: { title: string; hint?: string; children: React.ReactNode }) {
   return (
     <section>
-      <h2 className="text-lg font-medium text-ink">
+      <h2 className="text-lg text-ink">
         {title}
         {hint && <span className="ml-3 text-sm font-normal text-ink-3">{hint}</span>}
       </h2>
@@ -53,13 +53,13 @@ export function Configurator({ basePriceCents, leadTimeDays }: { basePriceCents:
           beadHex={bead?.hex ?? null}
           pattern={config.pattern}
           alt="Croquis de ton bracelet"
-          className="aspect-square rounded-md"
+          className="aspect-square rounded-2xl shadow-soft"
         />
         <p className="mt-2 text-xs text-ink-3">Un croquis, pas une photo : le vrai est noué à la main.</p>
         <div className="mt-5 border-t border-line pt-5">
           <div className="flex items-baseline justify-between">
             <p className="text-lg font-medium text-ink">Ton bracelet</p>
-            <p className="text-xl text-ink">{formatPrice(price)}</p>
+            <p className="font-display text-2xl text-accent-strong">{formatPrice(price)}</p>
           </div>
           <ul className="mt-2 text-sm text-ink-2">
             {describeConfig(config).map((d) => (
@@ -67,7 +67,7 @@ export function Configurator({ basePriceCents, leadTimeDays }: { basePriceCents:
             ))}
           </ul>
           <p className="mt-3 text-xs text-ink-3">Noué sous {leadTimeDays} jours, puis expédié.</p>
-          {state.error && <p role="alert" className="mt-3 rounded-md bg-red-50 px-4 py-2 text-sm text-red-700">{state.error}</p>}
+          {state.error && <p role="alert" className="mt-3 rounded-lg bg-red-50 px-4 py-2 text-sm text-red-700">{state.error}</p>}
           <SubmitButton pendingText="Ajout au panier…" className="mt-4 w-full">
             Ajouter au panier · {formatPrice(price)}
           </SubmitButton>
@@ -87,13 +87,13 @@ export function Configurator({ basePriceCents, leadTimeDays }: { basePriceCents:
                   onClick={() => toggleThread(t.hex)}
                   aria-pressed={active}
                   className={cn(
-                    "flex items-center gap-2.5 rounded-md border bg-white px-3 py-2 text-left text-sm transition-colors",
-                    active ? "border-ink" : "border-line-2 hover:border-ink",
+                    "flex items-center gap-2.5 rounded-lg border bg-white px-3 py-2 text-left text-sm transition-[border-color,box-shadow] duration-200",
+                    active ? "border-accent ring-2 ring-accent/15" : "border-line-2 hover:border-accent",
                   )}
                 >
                   <span className="h-6 w-6 shrink-0 rounded-full ring-1 ring-ink/15" style={{ backgroundColor: t.hex }} />
                   <span className="text-ink">{t.name}</span>
-                  {active && <span className="ml-auto text-xs text-ink-3">{order + 1}</span>}
+                  {active && <span className="ml-auto flex h-5 w-5 items-center justify-center rounded-full bg-accent text-[11px] font-semibold text-white">{order + 1}</span>}
                 </button>
               );
             })}
@@ -132,8 +132,8 @@ export function Configurator({ basePriceCents, leadTimeDays }: { basePriceCents:
                   onClick={() => setConfig((c) => ({ ...c, pattern: p.code }))}
                   aria-pressed={active}
                   className={cn(
-                    "rounded-md border bg-white p-4 text-left transition-colors",
-                    active ? "border-ink" : "border-line-2 hover:border-ink",
+                    "rounded-lg border bg-white p-4 text-left transition-[border-color,box-shadow] duration-200",
+                    active ? "border-accent ring-2 ring-accent/15" : "border-line-2 hover:border-accent",
                   )}
                 >
                   <span className="block font-medium text-ink">{p.name}</span>

@@ -20,7 +20,7 @@ function CartRow({ item }: { item: CartItemWithProduct }) {
 
   return (
     <li className="flex gap-4 py-6">
-      <div className="w-24 shrink-0 overflow-hidden rounded-md sm:w-28">
+      <div className="w-24 shrink-0 overflow-hidden rounded-xl shadow-soft sm:w-28">
         <ProductVisual
           colors={custom ? custom.threads : parseColors(item.product.colors)}
           kind={kindFromCategorySlug(item.product.category.slug)}
@@ -40,7 +40,7 @@ function CartRow({ item }: { item: CartItemWithProduct }) {
               {custom && (
                 <>
                   {" "}
-                  <span className="ml-1 rounded-md bg-accent-soft px-2 py-0.5 text-xs font-semibold text-accent-strong">sur mesure</span>
+                  <span className="ml-1 rounded-full bg-accent-soft px-2.5 py-0.5 text-xs font-semibold text-accent-strong">sur mesure</span>
                 </>
               )}
             </p>
@@ -53,7 +53,7 @@ function CartRow({ item }: { item: CartItemWithProduct }) {
           <p className="shrink-0 font-semibold text-ink">{formatPrice(item.unitPriceCents * item.quantity)}</p>
         </div>
         <div className="mt-auto flex items-center gap-3">
-          <form action={updateCartItem} className="inline-flex items-center rounded-md border border-line-2 bg-white">
+          <form action={updateCartItem} className="inline-flex items-center rounded-lg border border-line-2 bg-white">
             <input type="hidden" name="itemId" value={item.id} />
             <button name="quantity" value={item.quantity - 1} className="px-2.5 py-1.5 text-ink-2 hover:text-ink" aria-label="Moins">
               <Minus className="h-4 w-4" />
@@ -86,7 +86,7 @@ export default async function CartPage() {
   if (items.length === 0) {
     return (
       <div className="mx-auto max-w-2xl px-4 py-24 text-center sm:px-6">
-        <h1 className="text-3xl font-medium tracking-tight text-ink">Ton panier est vide</h1>
+        <h1 className="text-3xl text-ink">Ton panier est vide</h1>
         <p className="mt-3 text-ink-3">Pas de panique, l'atelier a de quoi le remplir.</p>
         <div className="mt-8 flex justify-center gap-3">
           <ButtonLink href="/boutique">Voir la boutique</ButtonLink>
@@ -98,7 +98,7 @@ export default async function CartPage() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
-      <h1 className="text-3xl font-medium tracking-tight text-ink">
+      <h1 className="text-3xl text-ink">
         Ton panier <span className="text-ink-3">· {itemCount} article{itemCount > 1 ? "s" : ""}</span>
       </h1>
       <div className="mt-8 grid gap-10 lg:grid-cols-[1fr_360px]">
@@ -108,7 +108,7 @@ export default async function CartPage() {
           ))}
         </ul>
 
-        <aside className="h-fit rounded-md border border-line bg-white/70 p-6 lg:sticky lg:top-24">
+        <aside className="h-fit rounded-2xl border border-line bg-white/70 p-6 shadow-soft lg:sticky lg:top-24">
           <h2 className="text-lg font-medium text-ink">Récapitulatif</h2>
           <dl className="mt-4 space-y-2 text-sm">
             <div className="flex justify-between"><dt className="text-ink-3">Sous-total</dt><dd className="font-semibold">{formatPrice(subtotalCents)}</dd></div>
@@ -119,7 +119,7 @@ export default async function CartPage() {
             <div className="flex justify-between"><dt className="text-ink-3">Délai de confection</dt><dd className="font-semibold">{maxLeadTimeDays} jours</dd></div>
           </dl>
           {!freeShipping && threshold != null && (
-            <p className="mt-3 rounded-md bg-accent-soft px-3 py-2 text-xs text-accent-strong">
+            <p className="mt-3 rounded-lg bg-accent-soft px-3 py-2 text-xs text-accent-strong">
               Plus que {formatPrice(threshold - subtotalCents)} pour la livraison offerte.
             </p>
           )}

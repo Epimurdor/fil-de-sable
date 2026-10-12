@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Fil } from "@/components/fil";
 import { Configurator } from "@/components/configurator";
 import { getCustomizableProduct } from "@/lib/products/queries";
 
@@ -12,8 +13,9 @@ export default async function ConfiguratorPage() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
-      <h1 className="mt-1 text-3xl font-medium tracking-tight text-ink sm:text-4xl">Compose ton bracelet</h1>
-      <p className="mt-2 max-w-xl text-ink-3">
+      <h1 className="mt-1 text-4xl text-ink sm:text-5xl">Compose ton bracelet</h1>
+      <Fil width={140} className="mt-4" />
+      <p className="mt-4 max-w-xl text-ink-2">
         Jusqu'à trois fils, une perle, un motif, ta taille. L'aperçu est une esquisse : le vrai est noué à la main, avec les
         petites irrégularités qui vont avec.
       </p>
@@ -21,7 +23,7 @@ export default async function ConfiguratorPage() {
         {product ? (
           <Configurator basePriceCents={product.priceCents} leadTimeDays={product.leadTimeDays} />
         ) : (
-          <p className="rounded-md border border-dashed border-line-2 p-8 text-center text-ink-3">
+          <p className="rounded-lg border border-dashed border-line-2 p-8 text-center text-ink-3">
             Le configurateur revient très vite.
           </p>
         )}

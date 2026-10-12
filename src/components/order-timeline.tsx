@@ -9,7 +9,7 @@ type Event = { status: string; note: string | null; createdAt: Date };
 export function OrderTimeline({ status, events }: { status: string; events: Event[] }) {
   if (status === "cancelled") {
     return (
-      <div className="rounded-md bg-red-50 p-4 text-sm text-red-700">{STATUS_INFO.cancelled.customer}</div>
+      <div className="rounded-lg bg-red-50 p-4 text-sm text-red-700">{STATUS_INFO.cancelled.customer}</div>
     );
   }
   const current = timelineIndex(status);
@@ -26,7 +26,7 @@ export function OrderTimeline({ status, events }: { status: string; events: Even
             <span
               className={cn(
                 "absolute -left-[31px] top-0.5 flex h-5 w-5 items-center justify-center rounded-full ring-4 ring-paper",
-                done ? "bg-accent text-white" : "bg-line",
+                done ? "bg-accent text-white shadow-soft" : "bg-line",
                 active && "animate-pulse",
               )}
             >

@@ -23,11 +23,11 @@ export default async function MockPaymentPage({
 
   return (
     <div className="mx-auto max-w-lg px-4 py-16 sm:px-6">
-      <div className="rounded-md border border-line bg-white p-8">
-        <p className="inline-flex items-center gap-2 rounded-md bg-accent-soft px-3 py-1 text-xs font-semibold text-accent-strong">
+      <div className="rounded-lg border border-line bg-white p-8">
+        <p className="inline-flex items-center gap-2 rounded-lg bg-accent-soft px-3 py-1 text-xs font-semibold text-accent-strong">
           Paiement simulé
         </p>
-        <h1 className="mt-4 text-2xl font-medium tracking-tight text-ink">Commande {order.number}</h1>
+        <h1 className="mt-4 text-2xl text-ink">Commande {order.number}</h1>
         <p className="mt-1 text-sm text-ink-3">
           En production, cette étape est remplacée par la page de paiement du prestataire (Stripe).
         </p>
@@ -44,7 +44,7 @@ export default async function MockPaymentPage({
         </ul>
 
         {echec && (
-          <p role="alert" className="mt-4 rounded-md bg-red-50 px-4 py-2 text-sm text-red-700">
+          <p role="alert" className="mt-4 rounded-lg bg-red-50 px-4 py-2 text-sm text-red-700">
             Paiement refusé (simulation). Tu peux réessayer.
           </p>
         )}

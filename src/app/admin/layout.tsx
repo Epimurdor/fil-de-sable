@@ -3,7 +3,7 @@ import { NavLink } from "@/components/nav-link";
 import { site } from "@/config/site";
 import { requireAdmin } from "@/lib/auth/session";
 
-const linkClass = "rounded-md px-3 py-1.5 text-sm font-medium transition-colors";
+const linkClass = "rounded-lg px-3 py-1.5 text-sm font-medium transition-colors";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   await requireAdmin();

@@ -50,7 +50,7 @@ export function ProductForm({
   return (
     <form action={action} className="grid gap-8 lg:grid-cols-[1fr_340px]">
       {v.id && <input type="hidden" name="id" value={v.id} />}
-      <div className="space-y-5 rounded-md border border-line bg-white p-6">
+      <div className="space-y-5 rounded-lg border border-line bg-white p-6">
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
             <label className="label" htmlFor="name">Nom</label>
@@ -109,11 +109,11 @@ export function ProductForm({
         </div>
       </div>
 
-      <aside className="h-fit space-y-4 rounded-md border border-line bg-white p-6 lg:sticky lg:top-24">
+      <aside className="h-fit space-y-4 rounded-lg border border-line bg-white p-6 lg:sticky lg:top-24">
         <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="isActive" defaultChecked={v.isActive} className="h-4 w-4 accent-accent" /> Visible dans la boutique</label>
         <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="isFeatured" defaultChecked={v.isFeatured} className="h-4 w-4 accent-accent" /> À la une sur l'accueil</label>
         <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="isCustomizable" defaultChecked={v.isCustomizable} className="h-4 w-4 accent-accent" /> Produit du configurateur</label>
-        {state.error && <p role="alert" className="rounded-md bg-red-50 px-4 py-2 text-sm text-red-700">{state.error}</p>}
+        {state.error && <p role="alert" className="rounded-lg bg-red-50 px-4 py-2 text-sm text-red-700">{state.error}</p>}
         <SubmitButton pendingText="Enregistrement…" className="w-full">{v.id ? "Enregistrer" : "Créer le produit"}</SubmitButton>
       </aside>
     </form>

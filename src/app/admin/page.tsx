@@ -21,10 +21,10 @@ export default async function AdminHome() {
 
   return (
     <div className="space-y-10">
-      <h1 className="text-3xl font-medium tracking-tight text-ink">Tableau de bord</h1>
+      <h1 className="text-3xl text-ink">Tableau de bord</h1>
       <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
         {cards.map((c) => (
-          <Link key={c.label} href={c.href} className={`rounded-md p-5 transition ${c.tone}`}>
+          <Link key={c.label} href={c.href} className={`rounded-lg p-5 transition ${c.tone}`}>
             <p className="text-xs font-semibold uppercase tracking-wider opacity-80">{c.label}</p>
             <p className="mt-2 text-2xl font-medium tracking-tight">{c.value}</p>
           </Link>
@@ -39,7 +39,7 @@ export default async function AdminHome() {
         {recent.length === 0 ? (
           <p className="mt-4 text-sm text-ink-3">Aucune commande pour le moment.</p>
         ) : (
-          <div className="mt-4 overflow-x-auto rounded-md border border-line bg-white">
+          <div className="mt-4 overflow-x-auto rounded-lg border border-line bg-white">
             <table className="w-full text-sm">
               <thead className="bg-paper-2 text-left text-xs uppercase tracking-wider text-ink-3">
                 <tr><th className="px-4 py-3">Numéro</th><th className="px-4 py-3">Date</th><th className="px-4 py-3">Client</th><th className="px-4 py-3">Statut</th><th className="px-4 py-3 text-right">Total</th></tr>

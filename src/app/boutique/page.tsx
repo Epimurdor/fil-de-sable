@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ProductCard } from "@/components/product-card";
 import { cn } from "@/lib/cn";
+import { Fil } from "@/components/fil";
 import { getCategories, getProducts, type ShopSort } from "@/lib/products/queries";
 
 export const metadata: Metadata = { title: "Boutique" };
@@ -22,7 +23,7 @@ function href(categorie: string | undefined, tri: string | undefined) {
 }
 
 const linkClass = (active: boolean) =>
-  cn("underline-offset-4 transition-colors", active ? "text-ink underline" : "text-ink-2 hover:text-ink");
+  cn("rounded-full px-3.5 py-1.5 transition-[color,background-color] duration-200", active ? "bg-accent text-white" : "text-ink-2 hover:bg-accent-soft hover:text-accent-strong");
 
 export default async function ShopPage({
   searchParams,
@@ -36,20 +37,21 @@ export default async function ShopPage({
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
-      <h1 className="text-3xl font-medium tracking-tight text-ink sm:text-4xl">{current?.name ?? "Boutique"}</h1>
-      <p className="mt-2 max-w-xl text-ink-2">
+      <h1 className="text-4xl text-ink sm:text-5xl">{current?.name ?? "Boutique"}</h1>
+      <Fil width={120} className="mt-4" />
+      <p className="mt-4 max-w-xl text-ink-2">
         {current?.description ?? "Tout est noué à la main après ta commande. Le délai est indiqué sur chaque pièce."}
       </p>
 
       <div className="mt-8 flex flex-wrap items-center justify-between gap-x-8 gap-y-3 border-b border-line pb-4 text-sm">
-        <div className="flex flex-wrap gap-5">
+        <div className="flex flex-wrap gap-1">
           {[{ slug: undefined, name: "Tout" }, ...categories].map((c) => (
             <Link key={c.slug ?? "all"} href={href(c.slug, tri)} className={linkClass((c.slug ?? "") === (categorie ?? ""))}>
               {c.name}
             </Link>
           ))}
         </div>
-        <div className="flex flex-wrap gap-4 text-ink-3">
+        <div className="flex flex-wrap gap-1 text-ink-3">
           {sorts.map((s) => (
             <Link key={s.value} href={href(categorie, s.value || undefined)} className={linkClass((sort ?? "") === s.value)}>
               {s.label}

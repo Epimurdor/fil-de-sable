@@ -7,7 +7,7 @@ import { login, register, type AuthState } from "@/lib/auth/actions";
 function ErrorLine({ error }: { error?: string }) {
   if (!error) return null;
   return (
-    <p role="alert" className="rounded-md bg-red-50 px-4 py-2 text-sm text-red-700">
+    <p role="alert" className="rounded-lg bg-red-50 px-4 py-2 text-sm text-red-700">
       {error}
     </p>
   );

@@ -43,8 +43,8 @@ export function AddToCartForm({
                 <label
                   key={v.value}
                   className={cn(
-                    "cursor-pointer rounded-md border px-3.5 py-1.5 text-sm font-medium transition",
-                    active ? "border-ink bg-ink text-paper" : "border-line-2 bg-white text-ink-2 hover:border-ink-3",
+                    "cursor-pointer rounded-full border px-4 py-1.5 text-sm font-medium transition-[color,background-color,border-color,box-shadow] duration-200",
+                    active ? "border-accent bg-accent text-white shadow-soft" : "border-line-2 bg-white text-ink-2 hover:border-accent hover:text-ink",
                   )}
                 >
                   <input
@@ -65,7 +65,7 @@ export function AddToCartForm({
       ))}
 
       <div className="flex flex-wrap items-center gap-4">
-        <div className="inline-flex items-center rounded-md border border-line-2 bg-white">
+        <div className="inline-flex items-center rounded-full border border-line-2 bg-white">
           <button type="button" onClick={() => setQty((q) => Math.max(1, q - 1))} className="px-3 py-2 text-ink-2 hover:text-ink" aria-label="Moins">
             <Minus className="h-4 w-4" />
           </button>
@@ -81,7 +81,7 @@ export function AddToCartForm({
       </div>
 
       {state.error && (
-        <p role="alert" className="rounded-md bg-red-50 px-4 py-2 text-sm text-red-700">
+        <p role="alert" className="rounded-lg bg-red-50 px-4 py-2 text-sm text-red-700">
           {state.error}
         </p>
       )}

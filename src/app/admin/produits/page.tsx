@@ -17,10 +17,10 @@ export default async function AdminProductsPage() {
   return (
     <div>
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <h1 className="text-3xl font-medium tracking-tight text-ink">Produits</h1>
+        <h1 className="text-3xl text-ink">Produits</h1>
         <ButtonLink href="/admin/produits/nouveau">Nouveau produit</ButtonLink>
       </div>
-      <div className="mt-6 overflow-x-auto rounded-md border border-line bg-white">
+      <div className="mt-6 overflow-x-auto rounded-lg border border-line bg-white">
         <table className="w-full text-sm">
           <thead className="bg-paper-2 text-left text-xs uppercase tracking-wider text-ink-3">
             <tr>
@@ -45,9 +45,9 @@ export default async function AdminProductsPage() {
                 <td className="px-4 py-3 text-ink-3">{p._count.options}</td>
                 <td className="px-4 py-3">
                   <span className="flex flex-wrap gap-1">
-                    {!p.isActive && <span className="rounded-md bg-red-50 px-2 py-0.5 text-xs font-semibold text-red-700">masqué</span>}
-                    {p.isFeatured && <span className="rounded-md bg-accent-soft px-2 py-0.5 text-xs font-semibold text-accent-strong">à la une</span>}
-                    {p.isCustomizable && <span className="rounded-md bg-accent-soft px-2 py-0.5 text-xs font-semibold text-accent-strong">configurateur</span>}
+                    {!p.isActive && <span className="rounded-lg bg-red-50 px-2 py-0.5 text-xs font-semibold text-red-700">masqué</span>}
+                    {p.isFeatured && <span className="rounded-full bg-accent-soft px-2.5 py-0.5 text-xs font-semibold text-accent-strong">à la une</span>}
+                    {p.isCustomizable && <span className="rounded-full bg-accent-soft px-2.5 py-0.5 text-xs font-semibold text-accent-strong">configurateur</span>}
                     {p.isActive && !p.isFeatured && !p.isCustomizable && <span className="text-xs text-ink-3">en ligne</span>}
                   </span>
                 </td>

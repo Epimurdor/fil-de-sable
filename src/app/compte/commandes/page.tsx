@@ -13,13 +13,13 @@ export default async function OrdersPage() {
 
   return (
     <div>
-      <h1 className="text-3xl font-medium tracking-tight text-ink">Mes commandes</h1>
+      <h1 className="text-3xl text-ink">Mes commandes</h1>
       {orders.length === 0 ? (
-        <p className="mt-6 rounded-md border border-dashed border-line-2 p-6 text-sm text-ink-3">
+        <p className="mt-6 rounded-lg border border-dashed border-line-2 p-6 text-sm text-ink-3">
           Rien pour l'instant. <Link href="/boutique" className="font-semibold text-accent-strong hover:underline">Voir la boutique</Link>
         </p>
       ) : (
-        <ul className="mt-6 divide-y divide-line rounded-md border border-line bg-white/70">
+        <ul className="mt-6 divide-y divide-line rounded-lg border border-line bg-white/70">
           {orders.map((o) => (
             <li key={o.id}>
               <Link href={`/compte/commandes/${o.number}`} className="flex items-center justify-between gap-4 px-6 py-4 transition hover:bg-paper">

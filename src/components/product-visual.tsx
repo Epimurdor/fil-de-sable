@@ -39,13 +39,33 @@ export function ProductVisual({ colors, kind = "bracelet", imageUrl, alt, beadHe
       </div>
     );
   }
+  // Sans photo : un dégradé tissé à partir des couleurs du bijou, pour que la grille ait quand même de la vie.
+  const swatch = colors.length ? colors : ["#e9d9bf", "#b0522b"];
+  const stops = swatch.map((c, i) => `${c} ${(i / swatch.length) * 100}% ${((i + 1) / swatch.length) * 100}%`).join(", ");
   return (
     <div
-      className={cn("flex items-center justify-center bg-paper-2 px-1 text-center text-[11px] leading-tight text-ink-3", className)}
+      className={cn("relative flex items-end justify-center overflow-hidden bg-paper-2 px-2 pb-3 text-center text-[11px] leading-tight text-ink-3", className)}
       role="img"
       aria-label={`${alt}, photo à venir`}
     >
-      Photo à venir
+      <div
+        aria-hidden
+        className="absolute inset-0 opacity-90"
+        style={{
+          backgroundImage: `linear-gradient(135deg, ${stops})`,
+          maskImage: "radial-gradient(ellipse 70% 60% at 50% 45%, black 40%, transparent 100%)",
+          WebkitMaskImage: "radial-gradient(ellipse 70% 60% at 50% 45%, black 40%, transparent 100%)",
+        }}
+      />
+      <div
+        aria-hidden
+        className="absolute inset-0 opacity-50 mix-blend-multiply"
+        style={{
+          backgroundImage:
+            "repeating-linear-gradient(45deg, transparent 0 6px, rgb(45 34 28 / 0.08) 6px 7px), repeating-linear-gradient(-45deg, transparent 0 6px, rgb(45 34 28 / 0.08) 6px 7px)",
+        }}
+      />
+      <span className="relative rounded-full bg-paper/80 px-2.5 py-1 backdrop-blur-sm">Photo à venir</span>
     </div>
   );
 }
@@ -86,7 +106,7 @@ function JewelSvg({ colors, kind, beadHex, pattern, title }: { colors: string[];
 
   return (
     <svg viewBox="0 0 400 400" role="img" aria-label={title} className="h-full w-full">
-      <rect width="400" height="400" fill="#f1f1ed" />
+      <rect width="400" height="400" fill="#f3e9da" />
       {kind === "collier" ? (
         <g fill="none" strokeLinecap="round">
           {colors.map((c, i) => {

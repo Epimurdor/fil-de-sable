@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { ProductCard, type ProductCardData } from "@/components/product-card";
 import { Button } from "@/components/ui/button";
+import { site } from "@/config/site";
 import { cn } from "@/lib/cn";
 import { parseColors } from "@/lib/types";
 
@@ -72,7 +73,7 @@ export function Quiz({ products }: { products: ProductCardData[] }) {
       .map((r) => r.p);
     return (
       <div>
-        <h2 className="text-2xl font-medium tracking-tight text-ink">Ce qu'on te verrait bien porter</h2>
+        <h2 className="text-3xl text-ink">Ce qu'on te verrait bien porter</h2>
         <div className="mt-6 grid grid-cols-2 gap-x-5 gap-y-10 md:grid-cols-3">
           {results.map((p) => (
             <ProductCard key={p.slug} product={p} />
@@ -80,9 +81,11 @@ export function Quiz({ products }: { products: ProductCardData[] }) {
         </div>
         <div className="mt-10 flex flex-wrap items-center gap-5">
           <Button type="button" variant="secondary" onClick={() => setPicked([])}>Recommencer</Button>
-          <Link href="/configurateur" className="text-sm text-ink-2 underline-offset-4 hover:underline">
-            Ou compose-le à tes couleurs
-          </Link>
+          {site.customEnabled && (
+            <Link href="/configurateur" className="link-fil pb-0.5 text-sm text-ink-2 hover:text-ink">
+              Ou compose-le à tes couleurs
+            </Link>
+          )}
         </div>
       </div>
     );
@@ -91,8 +94,15 @@ export function Quiz({ products }: { products: ProductCardData[] }) {
   const q = questions[step];
   return (
     <div>
-      <p className="text-sm text-ink-3">Question {step + 1} sur {questions.length}</p>
-      <h2 className="mt-1 text-2xl font-medium tracking-tight text-ink sm:text-3xl">{q.title}</h2>
+      <div className="flex items-center gap-3">
+        <span className="flex gap-1.5" aria-hidden>
+          {questions.map((_, i) => (
+            <span key={i} className={cn("h-1.5 w-8 rounded-full transition-colors duration-300", i <= step ? "bg-accent" : "bg-line-2")} />
+          ))}
+        </span>
+        <p className="text-sm text-accent-strong">Question {step + 1} sur {questions.length}</p>
+      </div>
+      <h2 className="mt-3 text-3xl text-ink sm:text-4xl">{q.title}</h2>
       <div className="mt-6 grid gap-3 sm:grid-cols-2">
         {q.answers.map((a) => (
           <button
@@ -100,7 +110,7 @@ export function Quiz({ products }: { products: ProductCardData[] }) {
             type="button"
             onClick={() => setPicked((p) => [...p, a])}
             className={cn(
-              "flex items-center justify-between gap-4 rounded-md border border-line-2 bg-white px-5 py-4 text-left text-ink transition-colors hover:border-ink",
+              "flex items-center justify-between gap-4 rounded-xl border border-line-2 bg-white px-5 py-4 text-left text-ink shadow-soft transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-accent-strong hover:shadow-lift",
             )}
           >
             <span className="font-medium">{a.label}</span>
@@ -115,7 +125,7 @@ export function Quiz({ products }: { products: ProductCardData[] }) {
         ))}
       </div>
       {step > 0 && (
-        <button type="button" onClick={() => setPicked((p) => p.slice(0, -1))} className="mt-6 text-sm text-ink-2 underline-offset-4 hover:underline">
+        <button type="button" onClick={() => setPicked((p) => p.slice(0, -1))} className="link-fil mt-6 pb-0.5 text-sm text-ink-2 hover:text-ink">
           Question précédente
         </button>
       )}

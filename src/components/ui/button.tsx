@@ -5,13 +5,13 @@ import { cn } from "@/lib/cn";
 export type ButtonVariant = "primary" | "secondary" | "ghost" | "dark";
 
 const base =
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md px-5 py-3 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink active:translate-y-px disabled:cursor-not-allowed disabled:opacity-60";
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full px-6 py-3 text-sm font-medium transition-[background-color,box-shadow,transform,color] duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent hover:-translate-y-0.5 active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0";
 
 const variants: Record<ButtonVariant, string> = {
-  primary: "bg-ink text-paper hover:bg-ink-2",
-  secondary: "border border-ink text-ink hover:bg-paper-2",
-  ghost: "text-ink-2 hover:bg-paper-2",
-  dark: "bg-ink text-paper hover:bg-ink-2",
+  primary: "bg-accent text-ink shadow-soft hover:bg-[#c49b58] hover:shadow-lift",
+  secondary: "border border-ink/80 bg-paper/60 text-ink hover:border-accent-strong hover:bg-accent-soft",
+  ghost: "text-ink-2 hover:bg-paper-2 hover:translate-y-0",
+  dark: "bg-ink text-paper shadow-soft hover:bg-ink-2 hover:shadow-lift",
 };
 
 export function buttonClass(variant: ButtonVariant = "primary", className?: string): string {

@@ -53,7 +53,8 @@ model Product {
   description    String
   priceCents     Int
   leadTimeDays   Int             @default(7) // delai de confection (sur commande)
-  colors         String          @default("[]") // JSON string[] (hex) pour le visuel genere
+  colors         String          @default("[]") // JSON string[] (hex) des fils, pour le visuel genere
+  beads          String          @default("[]") // JSON string[] (hex) des perles
   imageUrl       String?
   isActive       Boolean         @default(true)
   isFeatured     Boolean         @default(false)
@@ -179,4 +180,19 @@ model OrderEvent {
   createdAt DateTime @default(now())
 
   @@index([orderId])
+}
+
+// Stock de fournitures de l'atelier (fils et perles). Le formulaire produit ne propose que
+// ce qui est en stock, et une pièce sort de la boutique dès qu'une fourniture manque.
+model Supply {
+  id        String   @id @default(cuid())
+  kind      String // fil | perle
+  name      String
+  hex       String
+  quantity  Int      @default(0) // bobines / sachets en stock ; 0 = épuisé
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([kind, hex])
 }

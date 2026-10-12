@@ -1,8 +1,12 @@
 import Image from "next/image";
 import Link from "next/link";
+import { ArrowRight } from "lucide-react";
+import { cn } from "@/lib/cn";
+import { Fil } from "@/components/fil";
 import { ProductCard } from "@/components/product-card";
 import { ButtonLink } from "@/components/ui/button";
 import { formatPrice } from "@/lib/format";
+import { site } from "@/config/site";
 import { getFeaturedProducts } from "@/lib/products/queries";
 
 export default async function HomePage() {
@@ -12,71 +16,135 @@ export default async function HomePage() {
 
   return (
     <div>
-      <section className="mx-auto max-w-6xl px-4 pt-12 sm:px-6 lg:pt-16">
-        <h1 className="max-w-4xl text-4xl font-medium leading-[1.05] tracking-tight text-ink sm:text-5xl lg:text-[3.25rem]">
-          Bijoux en micro-macramé, noués à la main, sur commande.
-        </h1>
-        <p className="mt-5 max-w-md text-lg text-ink-2">
-          Fil ciré, perles et pierres. Chaque pièce est nouée après ta commande, dans un petit atelier.
-        </p>
-        <ButtonLink href="/boutique" className="mt-7">Voir la boutique</ButtonLink>
+      {/* Un ciel de sable derrière le titre : deux halos, terre cuite et ardoise, qui se fondent dans le papier. */}
+      <section className="relative overflow-hidden">
+        <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
+          <div className="absolute -top-40 right-[-10%] h-[32rem] w-[32rem] rounded-full bg-accent/45 blur-3xl" />
+          <div className="absolute -left-32 top-24 h-[26rem] w-[26rem] rounded-full bg-slate-soft blur-3xl" />
+          <div className="absolute bottom-0 left-1/2 h-64 w-[60rem] -translate-x-1/2 rounded-[100%] bg-sand/60 blur-3xl" />
+        </div>
+        <div className="mx-auto max-w-6xl px-4 pb-10 pt-14 sm:px-6 lg:pt-20">
+          <p className="animate-rise text-sm font-medium text-accent-strong">Micro-macramé, noué à la main</p>
+          <h1 className="mt-4 max-w-4xl animate-rise text-[2.6rem] leading-[1.05] text-ink [animation-delay:80ms] sm:text-6xl lg:text-[4.25rem]">
+            Des bijoux qui prennent <span className="text-accent-strong">le temps</span> d&apos;être noués pour toi.
+          </h1>
+          <Fil width={200} className="mt-6" />
+          <p className="mt-6 max-w-md animate-rise text-lg text-ink-2 [animation-delay:160ms]">
+            Fil ciré, perles et pierres. Chaque pièce est nouée après ta commande, dans un petit atelier.
+          </p>
+          <div className="mt-8 flex animate-rise flex-wrap gap-3 [animation-delay:240ms]">
+            <ButtonLink href="/boutique">
+              Voir la boutique <ArrowRight className="h-4 w-4" />
+            </ButtonLink>
+            {site.customEnabled ? (
+              <ButtonLink href="/configurateur" variant="secondary">Composer un bracelet</ButtonLink>
+            ) : (
+              <ButtonLink href="/quiz" variant="secondary">Trouver mon bijou</ButtonLink>
+            )}
+          </div>
+        </div>
       </section>
 
       {photos.length > 0 && (
-        <section className="mt-12 grid gap-1 sm:grid-cols-2">
+        <section className="mx-auto grid max-w-6xl gap-4 px-4 sm:grid-cols-2 sm:px-6">
           {photos.map((p, i) => (
-            <Link key={p.id} href={`/boutique/${p.slug}`} className="group block">
-              <div className="relative aspect-[4/5] sm:aspect-[5/6]">
-                <Image src={p.imageUrl!} alt={p.name} fill priority={i === 0} sizes="(min-width: 640px) 50vw, 100vw" className="object-cover" />
+            <Link key={p.id} href={`/boutique/${p.slug}`} className="group reveal block">
+              <div className="relative aspect-[4/5] overflow-hidden rounded-2xl shadow-soft transition-shadow duration-300 group-hover:shadow-lift sm:aspect-[5/6]">
+                <Image
+                  src={p.imageUrl!}
+                  alt={p.name}
+                  fill
+                  priority={i === 0}
+                  sizes="(min-width: 640px) 50vw, 100vw"
+                  className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
+                />
+                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-ink/60 to-transparent px-5 pb-4 pt-16 text-paper">
+                  <span className="font-display text-xl">{p.name}</span>
+                  <span className="ml-3 text-sm text-paper/85">{formatPrice(p.priceCents)}</span>
+                </div>
               </div>
-              <p className="px-4 py-3 text-sm sm:px-6">
-                <span className="font-medium text-ink underline-offset-4 group-hover:underline">{p.name}</span>
-                <span className="ml-3 text-ink-2">{formatPrice(p.priceCents)}</span>
-              </p>
             </Link>
           ))}
         </section>
       )}
 
       {grid.length > 0 && (
-        <section className="mx-auto max-w-6xl px-4 pt-20 sm:px-6">
-          <div className="flex items-baseline justify-between">
-            <h2 className="text-2xl font-medium tracking-tight text-ink">Les pièces</h2>
-            <Link href="/boutique" className="text-sm text-ink-2 underline-offset-4 hover:underline">Toute la boutique</Link>
+        <section className="mx-auto max-w-6xl px-4 pt-24 sm:px-6">
+          <div className="flex items-end justify-between gap-6">
+            <div>
+              <h2 className="text-3xl text-ink sm:text-4xl">Les pièces</h2>
+              <Fil width={96} className="mt-3" />
+            </div>
+            <Link href="/boutique" className="link-fil pb-0.5 text-sm text-ink-2 hover:text-ink">Toute la boutique</Link>
           </div>
-          <div className="mt-6 grid grid-cols-2 gap-x-5 gap-y-10 md:grid-cols-4">
-            {grid.map((p) => (
-              <ProductCard key={p.id} product={p} />
+          <div className="mt-8 grid grid-cols-2 gap-x-5 gap-y-10 md:grid-cols-4">
+            {grid.map((p, i) => (
+              <div key={p.id} className="reveal" style={{ animationDelay: `${i * 60}ms` }}>
+                <ProductCard product={p} />
+              </div>
             ))}
           </div>
         </section>
       )}
 
-      <section className="mx-auto max-w-6xl px-4 pt-24 sm:px-6">
-        <div className="max-w-2xl">
-          <h2 className="text-2xl font-medium tracking-tight text-ink sm:text-3xl">Rien n'est en stock. Tout est noué pour toi.</h2>
-          <div className="mt-5 space-y-4 text-ink-2">
-            <p>Tu choisis un modèle, ou tu composes ton bracelet fil par fil. Le délai de confection est indiqué sur chaque pièce.</p>
-            <p>Dès que la commande est payée, elle entre dans la file de l'atelier. Tu suis chaque étape depuis ton compte, jusqu'à l'expédition.</p>
-            <p>Ça arrive dans ta boîte aux lettres, en lettre suivie, en point relais ou à domicile. Offert dès 60 €.</p>
+      <section className="relative mt-28 overflow-hidden bg-paper-2">
+        <div aria-hidden className="pointer-events-none absolute inset-0">
+          <div className="absolute -right-24 -top-24 h-80 w-80 rounded-full bg-accent/50 blur-3xl" />
+          <div className="absolute -bottom-32 -left-24 h-80 w-80 rounded-full bg-accent-soft blur-3xl" />
+        </div>
+        <div className="relative mx-auto grid max-w-6xl gap-12 px-4 py-20 sm:px-6 md:grid-cols-[1.1fr_1fr] md:items-center">
+          <div className="reveal">
+            <h2 className="text-3xl text-ink sm:text-4xl">Rien n&apos;est en stock. Tout est noué pour toi.</h2>
+            <Fil width={120} className="mt-4" />
           </div>
+          <ol className="reveal space-y-6 text-ink-2">
+            {[
+              ["Tu choisis", site.customEnabled ? "Un modèle de la boutique, ou ton bracelet composé fil par fil. Le délai est indiqué sur chaque pièce." : "Un modèle de la boutique, sa taille et ses options. Le délai est indiqué sur chaque pièce."],
+              ["On noue", "Dès que la commande est payée, elle entre dans la file de l'atelier. Tu suis chaque étape depuis ton compte."],
+              ["Ça arrive", "Dans ta boîte aux lettres, en lettre suivie, en point relais ou à domicile. Offert dès 60 €."],
+            ].map(([t, d], i) => (
+              <li key={t} className="flex gap-4">
+                <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent font-display text-sm text-ink shadow-soft">
+                  {i + 1}
+                </span>
+                <div>
+                  <p className="font-medium text-ink">{t}</p>
+                  <p className="mt-1">{d}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
         </div>
       </section>
 
-      <section className="mx-auto mt-20 grid max-w-6xl gap-4 px-4 sm:px-6 md:grid-cols-2">
-        <Link href="/configurateur" className="group flex min-h-64 flex-col justify-between rounded-md bg-accent p-8 text-paper">
-          <div>
-            <h3 className="text-2xl font-medium tracking-tight">Compose ton bracelet</h3>
-            <p className="mt-3 max-w-sm text-paper/85">Trois fils, une perle, un motif, ta taille. L'aperçu se dessine pendant que tu choisis.</p>
+      <section className={cn("mx-auto mt-24 grid max-w-6xl gap-5 px-4 sm:px-6", site.customEnabled && "md:grid-cols-2")}>
+        {site.customEnabled && (
+        <Link
+          href="/configurateur"
+          className="group reveal relative flex min-h-72 flex-col justify-between overflow-hidden rounded-2xl bg-gradient-to-br from-accent to-[#b8905a] p-8 text-ink shadow-soft transition-[box-shadow,transform] duration-300 hover:-translate-y-1 hover:shadow-lift"
+        >
+          <div aria-hidden className="absolute -right-16 -top-16 h-56 w-56 rounded-full bg-white/25 transition-transform duration-700 group-hover:scale-150" />
+          <div className="relative">
+            <h3 className="font-display text-3xl">Compose ton bracelet</h3>
+            <p className="mt-3 max-w-sm text-ink/80">Trois fils, une perle, un motif, ta taille. L&apos;aperçu se dessine pendant que tu choisis.</p>
           </div>
-          <span className="mt-6 text-sm underline-offset-4 group-hover:underline">Ouvrir le configurateur</span>
+          <span className="relative mt-6 inline-flex items-center gap-2 text-sm font-medium">
+            Ouvrir le configurateur <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+          </span>
         </Link>
-        <Link href="/quiz" className="group flex min-h-64 flex-col justify-between rounded-md bg-paper-2 p-8 text-ink">
-          <div>
-            <h3 className="text-2xl font-medium tracking-tight">Tu hésites ?</h3>
-            <p className="mt-3 max-w-sm text-ink-2">Trois questions sur ton ambiance et tes couleurs. On te montre les pièces qui te ressemblent.</p>
+        )}
+        <Link
+          href="/quiz"
+          className="group reveal relative flex min-h-72 flex-col justify-between overflow-hidden rounded-2xl bg-gradient-to-br from-slate to-[#34475a] p-8 text-white shadow-soft transition-[box-shadow,transform] duration-300 hover:-translate-y-1 hover:shadow-lift [animation-delay:80ms]"
+        >
+          <div aria-hidden className="absolute -bottom-20 -right-10 h-56 w-56 rounded-full bg-white/10 transition-transform duration-700 group-hover:scale-150" />
+          <div className="relative">
+            <h3 className="font-display text-3xl">Tu hésites ?</h3>
+            <p className="mt-3 max-w-sm text-white/85">Trois questions sur ton ambiance et tes couleurs. On te montre les pièces qui te ressemblent.</p>
           </div>
-          <span className="mt-6 text-sm underline-offset-4 group-hover:underline">Faire le test</span>
+          <span className="relative mt-6 inline-flex items-center gap-2 text-sm font-medium">
+            Faire le test <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+          </span>
         </Link>
       </section>
     </div>

@@ -12,9 +12,9 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
 
   return (
     <div className="mx-auto max-w-md px-4 py-16 sm:px-6">
-      <h1 className="text-3xl font-medium tracking-tight text-ink">Content de te revoir</h1>
+      <h1 className="text-3xl text-ink">Content de te revoir</h1>
       <p className="mt-2 text-ink-3">Connecte-toi pour suivre tes commandes et retrouver ton panier.</p>
-      <div className="mt-8 rounded-md border border-line bg-white p-6">
+      <div className="mt-8 rounded-lg border border-line bg-white p-6">
         <LoginForm next={next} />
       </div>
       <p className="mt-6 text-center text-sm text-ink-3">

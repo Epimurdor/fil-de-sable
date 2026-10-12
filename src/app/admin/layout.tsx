@@ -3,7 +3,7 @@ import { NavLink } from "@/components/nav-link";
 import { site } from "@/config/site";
 import { requireAdmin } from "@/lib/auth/session";
 
-const linkClass = "rounded-md px-3 py-1.5 text-sm font-medium transition-colors";
+const linkClass = "rounded-lg px-3 py-1.5 text-sm font-medium transition-colors";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   await requireAdmin();
@@ -18,6 +18,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             <NavLink href="/admin" exact className={linkClass} activeClassName="bg-paper text-ink" inactiveClassName="text-paper/80 hover:text-paper">Tableau de bord</NavLink>
             <NavLink href="/admin/commandes" className={linkClass} activeClassName="bg-paper text-ink" inactiveClassName="text-paper/80 hover:text-paper">Commandes</NavLink>
             <NavLink href="/admin/produits" className={linkClass} activeClassName="bg-paper text-ink" inactiveClassName="text-paper/80 hover:text-paper">Produits</NavLink>
+            <NavLink href="/admin/stock" className={linkClass} activeClassName="bg-paper text-ink" inactiveClassName="text-paper/80 hover:text-paper">Stock</NavLink>
           </nav>
           <Link href="/" className="ml-auto text-sm text-line hover:text-white">Voir le site →</Link>
         </div>

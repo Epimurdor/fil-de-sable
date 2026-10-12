@@ -1,21 +1,45 @@
 @import "tailwindcss";
 
-/* Une seule famille de caractères, un papier presque blanc, une encre, un seul accent
-   (le bleu ardoise du fil des bracelets photographiés). */
+/* Palette tirée des photos de l'atelier : le sable doré du coquillage en couleur principale,
+   le bleu ardoise et le quartz rose des bracelets en touches. Une encre brune plutôt qu'un
+   noir, pour que tout reste chaud. Le sable est clair : les boutons gardent un texte encre,
+   et c'est « accent-strong », un sable brûlé, qui porte les petits textes. */
 @theme {
-  --color-paper: #fbfbf9;
-  --color-paper-2: #f1f1ed;
-  --color-line: #e3e3dd;
-  --color-line-2: #c9c9c1;
-  --color-ink: #1e1f1c;
-  --color-ink-2: #4a4b46;
-  --color-ink-3: #6b6c66;
-  --color-accent: #4a5e72;
-  --color-accent-strong: #34475a;
-  --color-accent-soft: #e7ecf1;
+  --color-paper: #fbf6ee;
+  --color-paper-2: #f3e9da;
+  --color-sand: #ecdcc0;
+  --color-line: #ebdfcc;
+  --color-line-2: #d9c7aa;
+  --color-ink: #2d221c;
+  --color-ink-2: #5b4a3e;
+  --color-ink-3: #7a6656;
+  --color-accent: #cfa96a;
+  --color-accent-strong: #8a6a2e;
+  --color-accent-soft: #f5e8cf;
+  --color-slate: #4a5e72;
+  --color-slate-soft: #e3e9ee;
+  --color-rose: #ecd0c8;
 
   --font-sans: var(--font-bricolage), system-ui, sans-serif;
-  --font-display: var(--font-bricolage), system-ui, sans-serif;
+  --font-display: var(--font-young-serif), Georgia, serif;
+
+  --shadow-soft: 0 1px 2px rgb(107 80 38 / 0.06), 0 8px 24px -12px rgb(107 80 38 / 0.22);
+  --shadow-lift: 0 2px 4px rgb(107 80 38 / 0.06), 0 22px 40px -18px rgb(107 80 38 / 0.4);
+
+  --animate-rise: rise 0.8s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  --animate-draw: draw 1.6s cubic-bezier(0.6, 0, 0.2, 1) both;
+
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(14px);
+    }
+  }
+  @keyframes draw {
+    from {
+      stroke-dashoffset: 1;
+    }
+  }
 }
 
 :root {
@@ -29,19 +53,60 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* Les titres en serif douce : le caractère « fait main » vient d'ici. */
 h1,
-h2,
+h2 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-synthesis: none;
+  letter-spacing: -0.01em;
+}
 h3 {
   letter-spacing: -0.015em;
 }
 
 ::selection {
-  background: var(--color-accent-soft);
+  background: var(--color-rose);
+}
+
+/* Lien souligné d'un fil sable brûlé qui se tend au survol. */
+.link-fil {
+  background-image: linear-gradient(var(--color-accent-strong), var(--color-accent-strong));
+  background-size: 0% 1.5px;
+  background-position: 0 100%;
+  background-repeat: no-repeat;
+  transition: background-size 0.35s ease, color 0.2s;
+}
+.link-fil:hover,
+.group:hover .link-fil,
+.link-fil[aria-current="page"] {
+  background-size: 100% 1.5px;
+}
+
+/* Apparition au défilement, sans JavaScript, là où le navigateur sait faire. */
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    .reveal {
+      animation: rise linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 60%;
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 /* Champs de formulaire. */
 .field {
-  @apply w-full rounded-md border border-line-2 bg-white px-3.5 py-2.5 text-ink placeholder:text-ink-3 focus:border-ink focus:outline-none focus:ring-1 focus:ring-ink;
+  @apply w-full rounded-lg border border-line-2 bg-white px-3.5 py-2.5 text-ink transition-shadow placeholder:text-ink-3 focus:border-accent focus:outline-none focus:ring-3 focus:ring-accent/15;
 }
 .label {
   @apply mb-1.5 block text-sm font-medium text-ink-2;

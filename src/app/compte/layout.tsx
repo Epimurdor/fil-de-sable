@@ -2,7 +2,7 @@ import { NavLink } from "@/components/nav-link";
 import { logout } from "@/lib/auth/actions";
 import { requireUser } from "@/lib/auth/session";
 
-const linkClass = "rounded-md px-4 py-2 text-sm font-medium transition-colors";
+const linkClass = "rounded-lg px-4 py-2 text-sm font-medium transition-colors";
 
 export default async function AccountLayout({ children }: { children: React.ReactNode }) {
   const user = await requireUser("/compte");

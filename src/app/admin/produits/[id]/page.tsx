@@ -4,8 +4,10 @@ import { notFound } from "next/navigation";
 import { ProductForm } from "@/components/admin/product-form";
 import { SubmitButton } from "@/components/forms/submit-button";
 import { deleteProduct } from "@/lib/admin/actions";
+import { listProductPhotos } from "@/lib/admin/photos";
 import { formatOptionsText } from "@/lib/admin/options-text";
 import { prisma } from "@/lib/db";
+import { getSuppliesInStock } from "@/lib/supplies";
 import { getCategories } from "@/lib/products/queries";
 import { parseColors } from "@/lib/types";
 
@@ -13,9 +15,12 @@ export const metadata: Metadata = { title: "Modifier le produit" };
 
 export default async function EditProductPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const [product, categories] = await Promise.all([
+  const [product, categories, photos, threads, beads] = await Promise.all([
     prisma.product.findUnique({ where: { id }, include: { options: { orderBy: { sortOrder: "asc" } } } }),
     getCategories(),
+    listProductPhotos(),
+    getSuppliesInStock("fil"),
+    getSuppliesInStock("perle"),
   ]);
   if (!product) notFound();
 
@@ -23,7 +28,7 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
     <div>
       <Link href="/admin/produits" className="text-sm text-ink-3 hover:text-ink">← Produits</Link>
       <div className="mt-2 flex flex-wrap items-center justify-between gap-4">
-        <h1 className="text-3xl font-medium tracking-tight text-ink">{product.name}</h1>
+        <h1 className="text-3xl text-ink">{product.name}</h1>
         <Link href={product.isCustomizable ? "/configurateur" : `/boutique/${product.slug}`} className="text-sm font-semibold text-accent-strong hover:underline">
           Voir sur le site →
         </Link>
@@ -31,6 +36,9 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
       <div className="mt-6">
         <ProductForm
           categories={categories}
+          photos={photos}
+          threads={threads}
+          beads={beads}
           product={{
             id: product.id,
             name: product.name,
@@ -40,7 +48,8 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
             price: (product.priceCents / 100).toFixed(2).replace(".", ","),
             leadTimeDays: product.leadTimeDays,
             categoryId: product.categoryId,
-            colors: parseColors(product.colors).join(", "),
+            colors: parseColors(product.colors),
+            beads: parseColors(product.beads),
             imageUrl: product.imageUrl ?? "",
             optionsText: formatOptionsText(product.options),
             isActive: product.isActive,
@@ -49,7 +58,7 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
           }}
         />
       </div>
-      <form action={deleteProduct} className="mt-10 rounded-md border border-red-200 bg-red-50/60 p-6">
+      <form action={deleteProduct} className="mt-10 rounded-lg border border-red-200 bg-red-50/60 p-6">
         <input type="hidden" name="id" value={product.id} />
         <p className="text-sm text-red-800">Supprimer définitivement ce produit. Les commandes passées gardent leur instantané.</p>
         <SubmitButton variant="secondary" pendingText="Suppression…" className="mt-3 border-red-300 text-red-700 hover:border-red-500">

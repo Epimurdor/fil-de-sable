@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Image from "next/image";
+import { Fil } from "@/components/fil";
 import { ButtonLink } from "@/components/ui/button";
 import { site } from "@/config/site";
 
@@ -9,7 +10,7 @@ export default function AtelierPage() {
   return (
     <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
       <div className="grid items-start gap-10 md:grid-cols-2 md:gap-16">
-        <div className="relative aspect-[4/5] overflow-hidden rounded-md">
+        <div className="relative aspect-[4/5] overflow-hidden rounded-2xl shadow-lift md:rotate-[-1.5deg]">
           <Image
             src="/images/produits/bracelet-atelier-2.jpg"
             alt="Bracelet en micro-macramé taupe et quartz rose"
@@ -20,7 +21,9 @@ export default function AtelierPage() {
           />
         </div>
         <div className="md:pt-6">
-          <h1 className="text-3xl font-medium tracking-tight text-ink sm:text-4xl">Un établi, des fils, et le temps qu'il faut.</h1>
+          <p className="text-sm font-medium text-accent-strong">L'atelier</p>
+          <h1 className="mt-3 text-4xl text-ink sm:text-5xl">Un établi, des fils, et le temps qu'il faut.</h1>
+          <Fil width={140} className="mt-5" />
           <div className="mt-6 space-y-4 text-ink-2">
             <p>
               {site.name}, c'est un petit atelier de micro-macramé. Des bracelets, des bagues et des colliers noués un par un,
@@ -38,12 +41,12 @@ export default function AtelierPage() {
           </div>
           <div className="mt-8 flex flex-wrap gap-3">
             <ButtonLink href="/boutique">Voir la boutique</ButtonLink>
-            <ButtonLink href="/configurateur" variant="secondary">Composer un bracelet</ButtonLink>
+            {site.customEnabled && <ButtonLink href="/configurateur" variant="secondary">Composer un bracelet</ButtonLink>}
           </div>
           <p className="mt-10 border-t border-line pt-6 text-sm text-ink-2">
             Une question, un cadeau à préparer ? Écris à{" "}
-            <a href={`mailto:${site.email}`} className="text-ink underline underline-offset-4">{site.email}</a> ou sur{" "}
-            <a href={`https://instagram.com/${site.instagram}`} className="text-ink underline underline-offset-4" rel="noreferrer" target="_blank">
+            <a href={`mailto:${site.email}`} className="link-fil pb-0.5 text-accent-strong">{site.email}</a> ou sur{" "}
+            <a href={`https://instagram.com/${site.instagram}`} className="link-fil pb-0.5 text-accent-strong" rel="noreferrer" target="_blank">
               Instagram
             </a>
             . On répond entre deux nœuds.

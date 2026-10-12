@@ -1,5 +1,10 @@
 import type { Prisma } from "@prisma/client";
+import { site } from "@/config/site";
 import { prisma } from "@/lib/db";
+import { getInStock, isAvailable } from "./availability";
+
+// Tant que le sur-mesure est mis de côté, le produit du configurateur reste hors boutique.
+const customFilter = site.customEnabled ? {} : { isCustomizable: false };
 
 export const productInclude = {
   category: true,
@@ -24,11 +29,15 @@ export async function getProducts(params: { category?: string; sort?: ShopSort }
           ? [{ createdAt: "desc" }]
           : [{ sortOrder: "asc" }, { createdAt: "desc" }];
 
-  return prisma.product.findMany({
-    where: { isActive: true, ...(params.category ? { category: { slug: params.category } } : {}) },
-    include: productInclude,
-    orderBy,
-  });
+  const [products, inStock] = await Promise.all([
+    prisma.product.findMany({
+      where: { isActive: true, ...customFilter, ...(params.category ? { category: { slug: params.category } } : {}) },
+      include: productInclude,
+      orderBy,
+    }),
+    getInStock(),
+  ]);
+  return products.filter((p) => isAvailable(p, inStock));
 }
 
 export async function getProductBySlug(slug: string): Promise<ProductFull | null> {
@@ -36,12 +45,15 @@ export async function getProductBySlug(slug: string): Promise<ProductFull | null
 }
 
 export async function getFeaturedProducts(limit = 4) {
-  return prisma.product.findMany({
-    where: { isActive: true, isFeatured: true },
-    include: productInclude,
-    orderBy: { sortOrder: "asc" },
-    take: limit,
-  });
+  const [products, inStock] = await Promise.all([
+    prisma.product.findMany({
+      where: { isActive: true, isFeatured: true, ...customFilter },
+      include: productInclude,
+      orderBy: { sortOrder: "asc" },
+    }),
+    getInStock(),
+  ]);
+  return products.filter((p) => isAvailable(p, inStock)).slice(0, limit);
 }
 
 export async function getCustomizableProduct(): Promise<ProductFull | null> {

@@ -73,8 +73,8 @@ export function CheckoutForm({
                 <label
                   key={m.code}
                   className={cn(
-                    "flex cursor-pointer items-center justify-between gap-4 rounded-md border bg-white px-4 py-3 transition",
-                    active ? "border-ink ring-2 ring-ink/10" : "border-line-2 hover:border-ink-3",
+                    "flex cursor-pointer items-center justify-between gap-4 rounded-lg border bg-white px-4 py-3 transition",
+                    active ? "border-accent ring-2 ring-accent/15" : "border-line-2 hover:border-accent",
                   )}
                 >
                   <span className="flex items-center gap-3">
@@ -104,7 +104,7 @@ export function CheckoutForm({
         </section>
       </div>
 
-      <aside className="h-fit rounded-md border border-line bg-white/70 p-6 lg:sticky lg:top-24">
+      <aside className="h-fit rounded-2xl border border-line bg-white/70 p-6 shadow-soft lg:sticky lg:top-24">
         <h2 className="text-lg font-medium text-ink">Ta commande</h2>
         <ul className="mt-4 divide-y divide-line text-sm">
           {items.map((it) => (
@@ -121,7 +121,7 @@ export function CheckoutForm({
         </dl>
         <p className="mt-3 text-xs text-ink-3">Confection : {leadTimeDays} jours, puis expédition.</p>
         {state.error && (
-          <p role="alert" className="mt-4 rounded-md bg-red-50 px-4 py-2 text-sm text-red-700">
+          <p role="alert" className="mt-4 rounded-lg bg-red-50 px-4 py-2 text-sm text-red-700">
             {state.error}
           </p>
         )}

@@ -28,7 +28,7 @@ export default async function OrderPage({
   return (
     <div className="space-y-8">
       {merci && (
-        <div className="flex items-start gap-3 rounded-md bg-accent-soft p-5 text-accent-strong">
+        <div className="flex items-start gap-3 rounded-lg bg-accent-soft p-5 text-accent-strong">
           <p>
             <span className="font-semibold">Merci !</span> Ta commande est bien reçue. L'atelier s'y met, et tu suivras
             chaque étape ici.
@@ -38,27 +38,27 @@ export default async function OrderPage({
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-medium tracking-tight text-ink">{order.number}</h1>
+          <h1 className="text-3xl text-ink">{order.number}</h1>
           <p className="mt-1 text-sm text-ink-3">Passée le {formatDate(order.createdAt)}</p>
         </div>
         <StatusBadge status={order.status} className="text-sm" />
       </div>
 
       {order.status === "pending" && (
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-accent/60 bg-accent-soft p-5">
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-accent/60 bg-accent-soft p-5">
           <p className="text-sm text-ink">Cette commande attend son paiement.</p>
           <ButtonLink href={`/paiement/simulation/${order.id}`}>Payer {formatPrice(order.totalCents)}</ButtonLink>
         </div>
       )}
 
       <div className="grid gap-8 md:grid-cols-[1fr_1.2fr]">
-        <section className="rounded-md border border-line bg-white/70 p-6">
+        <section className="rounded-lg border border-line bg-white/70 p-6">
           <h2 className="mb-5 text-lg font-medium text-ink">Où en est ta pièce</h2>
           <OrderTimeline status={order.status} events={order.events} />
         </section>
 
         <div className="space-y-6">
-          <section className="rounded-md border border-line bg-white/70 p-6">
+          <section className="rounded-lg border border-line bg-white/70 p-6">
             <h2 className="text-lg font-medium text-ink">Articles</h2>
             <ul className="mt-4 divide-y divide-line">
               {order.items.map((it) => {
@@ -66,7 +66,7 @@ export default async function OrderPage({
                 const details = custom ? describeConfig(custom) : optionLabels(it.product, parseSelectedOptions(it.selectedOptions));
                 return (
                   <li key={it.id} className="flex gap-4 py-4">
-                    <div className="w-16 shrink-0 overflow-hidden rounded-md">
+                    <div className="w-16 shrink-0 overflow-hidden rounded-lg">
                       <ProductVisual
                         colors={parseColors(it.colors)}
                         imageUrl={custom ? null : it.product?.imageUrl}
@@ -93,7 +93,7 @@ export default async function OrderPage({
             </dl>
           </section>
 
-          <section className="rounded-md border border-line bg-white/70 p-6 text-sm">
+          <section className="rounded-lg border border-line bg-white/70 p-6 text-sm">
             <h2 className="text-lg font-medium text-ink">Livraison</h2>
             <address className="mt-3 not-italic text-ink-2">
               {order.shipFullName}<br />
@@ -103,7 +103,7 @@ export default async function OrderPage({
               {order.shipPhone && <><br />{order.shipPhone}</>}
             </address>
             {order.customerNote && (
-              <p className="mt-3 rounded-md bg-paper-2 px-3 py-2 text-ink-2">« {order.customerNote} »</p>
+              <p className="mt-3 rounded-lg bg-paper-2 px-3 py-2 text-ink-2">« {order.customerNote} »</p>
             )}
           </section>
         </div>

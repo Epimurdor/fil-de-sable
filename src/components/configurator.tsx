@@ -12,7 +12,7 @@ import type { CustomConfig } from "@/lib/types";
 const chip = (active: boolean) =>
   cn(
     "rounded-full border px-4 py-2 text-sm transition-[color,background-color,border-color,box-shadow] duration-200",
-    active ? "border-accent bg-accent text-white shadow-soft" : "border-line-2 bg-white text-ink-2 hover:border-accent hover:text-ink",
+    active ? "border-accent bg-accent text-ink shadow-soft" : "border-line-2 bg-white text-ink-2 hover:border-accent-strong hover:text-ink",
   );
 
 function Step({ title, hint, children }: { title: string; hint?: string; children: React.ReactNode }) {
@@ -93,7 +93,7 @@ export function Configurator({ basePriceCents, leadTimeDays }: { basePriceCents:
                 >
                   <span className="h-6 w-6 shrink-0 rounded-full ring-1 ring-ink/15" style={{ backgroundColor: t.hex }} />
                   <span className="text-ink">{t.name}</span>
-                  {active && <span className="ml-auto flex h-5 w-5 items-center justify-center rounded-full bg-accent text-[11px] font-semibold text-white">{order + 1}</span>}
+                  {active && <span className="ml-auto flex h-5 w-5 items-center justify-center rounded-full bg-accent text-[11px] font-semibold text-ink">{order + 1}</span>}
                 </button>
               );
             })}

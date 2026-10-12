@@ -44,7 +44,7 @@ export function AddToCartForm({
                   key={v.value}
                   className={cn(
                     "cursor-pointer rounded-full border px-4 py-1.5 text-sm font-medium transition-[color,background-color,border-color,box-shadow] duration-200",
-                    active ? "border-accent bg-accent text-white shadow-soft" : "border-line-2 bg-white text-ink-2 hover:border-accent hover:text-ink",
+                    active ? "border-accent bg-accent text-ink shadow-soft" : "border-line-2 bg-white text-ink-2 hover:border-accent-strong hover:text-ink",
                   )}
                 >
                   <input

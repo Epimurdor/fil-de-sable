@@ -23,7 +23,7 @@ function href(categorie: string | undefined, tri: string | undefined) {
 }
 
 const linkClass = (active: boolean) =>
-  cn("rounded-full px-3.5 py-1.5 transition-[color,background-color] duration-200", active ? "bg-accent text-white" : "text-ink-2 hover:bg-accent-soft hover:text-accent-strong");
+  cn("rounded-full px-3.5 py-1.5 transition-[color,background-color] duration-200", active ? "bg-accent text-ink" : "text-ink-2 hover:bg-accent-soft hover:text-accent-strong");
 
 export default async function ShopPage({
   searchParams,

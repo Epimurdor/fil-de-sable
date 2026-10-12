@@ -31,7 +31,7 @@ export async function SiteHeader() {
     <header className="sticky top-0 z-40 border-b border-line/80 bg-paper/85 backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-6 px-4 sm:px-6">
         <Link href="/" className="group flex items-center gap-2 font-display text-xl text-ink">
-          <span aria-hidden className="h-2.5 w-2.5 rounded-full bg-accent ring-4 ring-accent-soft transition-transform duration-300 group-hover:scale-125" />
+          <span aria-hidden className="h-2.5 w-2.5 rounded-full bg-accent-strong ring-4 ring-accent-soft transition-transform duration-300 group-hover:scale-125" />
           {site.name}
         </Link>
         <nav className="hidden items-center gap-7 text-sm md:flex">{nav}</nav>
@@ -42,7 +42,7 @@ export async function SiteHeader() {
           <Link href="/panier" className="group inline-flex items-center gap-1.5 text-ink-2 hover:text-ink">
             <span className="link-fil pb-0.5">Panier</span>
             {itemCount > 0 && (
-              <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1.5 text-[11px] font-semibold text-white">
+              <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1.5 text-[11px] font-semibold text-ink">
                 {itemCount}
               </span>
             )}

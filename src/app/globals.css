@@ -1,20 +1,21 @@
 @import "tailwindcss";
 
-/* Palette tirée des photos de l'atelier : le sable et la nacre du coquillage, la terre cuite
-   des fils chauds, le bleu ardoise et le quartz rose des bracelets. Une encre brune plutôt
-   qu'un noir, pour que tout reste chaud. */
+/* Palette tirée des photos de l'atelier : le sable doré du coquillage en couleur principale,
+   le bleu ardoise et le quartz rose des bracelets en touches. Une encre brune plutôt qu'un
+   noir, pour que tout reste chaud. Le sable est clair : les boutons gardent un texte encre,
+   et c'est « accent-strong », un sable brûlé, qui porte les petits textes. */
 @theme {
   --color-paper: #fbf6ee;
   --color-paper-2: #f3e9da;
-  --color-sand: #e9d9bf;
+  --color-sand: #ecdcc0;
   --color-line: #ebdfcc;
   --color-line-2: #d9c7aa;
   --color-ink: #2d221c;
   --color-ink-2: #5b4a3e;
   --color-ink-3: #7a6656;
-  --color-accent: #b0522b;
-  --color-accent-strong: #8c3c1b;
-  --color-accent-soft: #f7e3d4;
+  --color-accent: #cfa96a;
+  --color-accent-strong: #8a6a2e;
+  --color-accent-soft: #f5e8cf;
   --color-slate: #4a5e72;
   --color-slate-soft: #e3e9ee;
   --color-rose: #ecd0c8;
@@ -22,8 +23,8 @@
   --font-sans: var(--font-bricolage), system-ui, sans-serif;
   --font-display: var(--font-young-serif), Georgia, serif;
 
-  --shadow-soft: 0 1px 2px rgb(74 46 26 / 0.06), 0 8px 24px -12px rgb(74 46 26 / 0.18);
-  --shadow-lift: 0 2px 4px rgb(74 46 26 / 0.06), 0 22px 40px -18px rgb(74 46 26 / 0.35);
+  --shadow-soft: 0 1px 2px rgb(107 80 38 / 0.06), 0 8px 24px -12px rgb(107 80 38 / 0.22);
+  --shadow-lift: 0 2px 4px rgb(107 80 38 / 0.06), 0 22px 40px -18px rgb(107 80 38 / 0.4);
 
   --animate-rise: rise 0.8s cubic-bezier(0.2, 0.7, 0.2, 1) both;
   --animate-draw: draw 1.6s cubic-bezier(0.6, 0, 0.2, 1) both;
@@ -68,9 +69,9 @@ h3 {
   background: var(--color-rose);
 }
 
-/* Lien souligné d'un fil terre cuite qui se tend au survol. */
+/* Lien souligné d'un fil sable brûlé qui se tend au survol. */
 .link-fil {
-  background-image: linear-gradient(var(--color-accent), var(--color-accent));
+  background-image: linear-gradient(var(--color-accent-strong), var(--color-accent-strong));
   background-size: 0% 1.5px;
   background-position: 0 100%;
   background-repeat: no-repeat;

@@ -107,7 +107,7 @@ export function Quiz({ products }: { products: ProductCardData[] }) {
             type="button"
             onClick={() => setPicked((p) => [...p, a])}
             className={cn(
-              "flex items-center justify-between gap-4 rounded-xl border border-line-2 bg-white px-5 py-4 text-left text-ink shadow-soft transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-accent hover:shadow-lift",
+              "flex items-center justify-between gap-4 rounded-xl border border-line-2 bg-white px-5 py-4 text-left text-ink shadow-soft transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-accent-strong hover:shadow-lift",
             )}
           >
             <span className="font-medium">{a.label}</span>

@@ -26,7 +26,7 @@ export function OrderTimeline({ status, events }: { status: string; events: Even
             <span
               className={cn(
                 "absolute -left-[31px] top-0.5 flex h-5 w-5 items-center justify-center rounded-full ring-4 ring-paper",
-                done ? "bg-accent text-white shadow-soft" : "bg-line",
+                done ? "bg-accent-strong text-white shadow-soft" : "bg-line",
                 active && "animate-pulse",
               )}
             >

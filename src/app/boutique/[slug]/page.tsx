@@ -29,7 +29,7 @@ export default async function ProductPage({ params }: { params: Params }) {
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
       <nav className="text-sm text-ink-3">
         <Link href="/boutique" className="link-fil pb-0.5 hover:text-ink">Boutique</Link>
-        <span className="mx-2 text-accent">·</span>
+        <span className="mx-2 text-accent-strong">·</span>
         <Link href={`/boutique?categorie=${product.category.slug}`} className="link-fil pb-0.5 hover:text-ink">{product.category.name}</Link>
       </nav>
 

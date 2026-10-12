@@ -17,14 +17,14 @@ export default async function HomePage() {
       {/* Un ciel de sable derrière le titre : deux halos, terre cuite et ardoise, qui se fondent dans le papier. */}
       <section className="relative overflow-hidden">
         <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
-          <div className="absolute -top-40 right-[-10%] h-[32rem] w-[32rem] rounded-full bg-accent-soft blur-3xl" />
+          <div className="absolute -top-40 right-[-10%] h-[32rem] w-[32rem] rounded-full bg-accent/45 blur-3xl" />
           <div className="absolute -left-32 top-24 h-[26rem] w-[26rem] rounded-full bg-slate-soft blur-3xl" />
           <div className="absolute bottom-0 left-1/2 h-64 w-[60rem] -translate-x-1/2 rounded-[100%] bg-sand/60 blur-3xl" />
         </div>
         <div className="mx-auto max-w-6xl px-4 pb-10 pt-14 sm:px-6 lg:pt-20">
           <p className="animate-rise text-sm font-medium text-accent-strong">Micro-macramé, noué à la main</p>
           <h1 className="mt-4 max-w-4xl animate-rise text-[2.6rem] leading-[1.05] text-ink [animation-delay:80ms] sm:text-6xl lg:text-[4.25rem]">
-            Des bijoux qui prennent <span className="text-accent">le temps</span> d&apos;être noués pour toi.
+            Des bijoux qui prennent <span className="text-accent-strong">le temps</span> d&apos;être noués pour toi.
           </h1>
           <Fil width={200} className="mt-6" />
           <p className="mt-6 max-w-md animate-rise text-lg text-ink-2 [animation-delay:160ms]">
@@ -83,7 +83,7 @@ export default async function HomePage() {
 
       <section className="relative mt-28 overflow-hidden bg-paper-2">
         <div aria-hidden className="pointer-events-none absolute inset-0">
-          <div className="absolute -right-24 -top-24 h-80 w-80 rounded-full bg-rose/70 blur-3xl" />
+          <div className="absolute -right-24 -top-24 h-80 w-80 rounded-full bg-accent/50 blur-3xl" />
           <div className="absolute -bottom-32 -left-24 h-80 w-80 rounded-full bg-accent-soft blur-3xl" />
         </div>
         <div className="relative mx-auto grid max-w-6xl gap-12 px-4 py-20 sm:px-6 md:grid-cols-[1.1fr_1fr] md:items-center">
@@ -98,7 +98,7 @@ export default async function HomePage() {
               ["Ça arrive", "Dans ta boîte aux lettres, en lettre suivie, en point relais ou à domicile. Offert dès 60 €."],
             ].map(([t, d], i) => (
               <li key={t} className="flex gap-4">
-                <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent font-display text-sm text-white shadow-soft">
+                <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent font-display text-sm text-ink shadow-soft">
                   {i + 1}
                 </span>
                 <div>
@@ -114,12 +114,12 @@ export default async function HomePage() {
       <section className="mx-auto mt-24 grid max-w-6xl gap-5 px-4 sm:px-6 md:grid-cols-2">
         <Link
           href="/configurateur"
-          className="group reveal relative flex min-h-72 flex-col justify-between overflow-hidden rounded-2xl bg-gradient-to-br from-accent to-accent-strong p-8 text-white shadow-soft transition-[box-shadow,transform] duration-300 hover:-translate-y-1 hover:shadow-lift"
+          className="group reveal relative flex min-h-72 flex-col justify-between overflow-hidden rounded-2xl bg-gradient-to-br from-accent to-[#b8905a] p-8 text-ink shadow-soft transition-[box-shadow,transform] duration-300 hover:-translate-y-1 hover:shadow-lift"
         >
-          <div aria-hidden className="absolute -right-16 -top-16 h-56 w-56 rounded-full bg-white/10 transition-transform duration-700 group-hover:scale-150" />
+          <div aria-hidden className="absolute -right-16 -top-16 h-56 w-56 rounded-full bg-white/25 transition-transform duration-700 group-hover:scale-150" />
           <div className="relative">
             <h3 className="font-display text-3xl">Compose ton bracelet</h3>
-            <p className="mt-3 max-w-sm text-white/85">Trois fils, une perle, un motif, ta taille. L&apos;aperçu se dessine pendant que tu choisis.</p>
+            <p className="mt-3 max-w-sm text-ink/80">Trois fils, une perle, un motif, ta taille. L&apos;aperçu se dessine pendant que tu choisis.</p>
           </div>
           <span className="relative mt-6 inline-flex items-center gap-2 text-sm font-medium">
             Ouvrir le configurateur <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />

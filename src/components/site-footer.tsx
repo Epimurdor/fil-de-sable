@@ -8,7 +8,7 @@ export function SiteFooter() {
   return (
     <footer className="mt-28 bg-ink text-paper">
       <div className="overflow-hidden">
-        <Fil width={1600} color="var(--color-accent)" second="var(--color-sand)" animate={false} className="-mt-2.5 opacity-90" />
+        <Fil width={1600} color="var(--color-accent)" second="var(--color-paper)" animate={false} className="-mt-2.5 opacity-90" />
       </div>
       <div className="mx-auto grid max-w-6xl gap-10 px-4 py-14 text-sm sm:px-6 md:grid-cols-3">
         <div>

@@ -81,6 +81,33 @@ const length: OptionSeed = {
   ],
 };
 
+// Stock initial : la palette de l'atelier, une unité de chaque, à ajuster dans l'admin.
+const beads: { name: string; hex: string }[] = [
+  { name: "Perle nacrée", hex: P.nacre },
+  { name: "Quartz rose", hex: P.quartz },
+  { name: "Perle en bois", hex: "#A67B5B" },
+  { name: "Pierre de lave", hex: P.noir },
+  { name: "Turquoise", hex: "#5FB8B0" },
+];
+const threads: { name: string; hex: string }[] = [
+  { name: "Bleu ardoise", hex: P.ardoise },
+  { name: "Nacre", hex: P.nacre },
+  { name: "Doré", hex: P.or },
+  { name: "Taupe", hex: P.taupe },
+  { name: "Quartz rose", hex: P.quartz },
+  { name: "Sable", hex: P.sable },
+  { name: "Écru", hex: P.ecru },
+  { name: "Terracotta", hex: P.terracotta },
+  { name: "Ocre", hex: P.ocre },
+  { name: "Sauge", hex: P.sauge },
+  { name: "Vert forêt", hex: P.foret },
+  { name: "Brun", hex: P.brun },
+  { name: "Bleu délavé", hex: P.bleu },
+  { name: "Rose poudré", hex: P.rose },
+  { name: "Noir", hex: P.noir },
+  { name: "Bordeaux", hex: P.bordeaux },
+];
+
 const categories = [
   { slug: "bracelets", name: "Bracelets", description: "Fins, noués serré, à empiler sans compter.", sortOrder: 1 },
   { slug: "bagues", name: "Bagues", description: "Un fil, un nœud, une bague qui ne quitte plus le doigt.", sortOrder: 2 },
@@ -264,6 +291,16 @@ async function main() {
     },
   });
 
+  for (const [kind, list] of [["fil", threads], ["perle", beads]] as const) {
+    for (const [i, t] of list.entries()) {
+      await prisma.supply.upsert({
+        where: { kind_hex: { kind, hex: t.hex } },
+        update: { name: t.name, sortOrder: i },
+        create: { kind, name: t.name, hex: t.hex, quantity: 1, sortOrder: i },
+      });
+    }
+  }
+
   const categoryIds = new Map<string, string>();
   for (const c of categories) {
     const row = await prisma.category.upsert({
@@ -314,7 +351,7 @@ async function main() {
   }
 
   console.log(
-    `Seed OK : ${categories.length} catégories, ${products.length} produits, ${shippingMethods.length} modes de livraison, admin ${adminEmail}`,
+    `Seed OK : ${threads.length} fils, ${beads.length} perles, ${categories.length} catégories, ${products.length} produits, ${shippingMethods.length} modes de livraison, admin ${adminEmail}`,
   );
 }
 

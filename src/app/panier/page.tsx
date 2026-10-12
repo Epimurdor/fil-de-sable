@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Minus, Plus, Trash2 } from "lucide-react";
 import { ProductVisual } from "@/components/product-visual";
 import { ButtonLink } from "@/components/ui/button";
+import { site } from "@/config/site";
 import { cartSummary, getCart, type CartItemWithProduct } from "@/lib/cart/cart";
 import { removeCartItem, updateCartItem } from "@/lib/cart/actions";
 import { BEADS, describeConfig } from "@/lib/configurator";
@@ -90,7 +91,7 @@ export default async function CartPage() {
         <p className="mt-3 text-ink-3">Pas de panique, l'atelier a de quoi le remplir.</p>
         <div className="mt-8 flex justify-center gap-3">
           <ButtonLink href="/boutique">Voir la boutique</ButtonLink>
-          <ButtonLink href="/configurateur" variant="secondary">Composer un bracelet</ButtonLink>
+          {site.customEnabled && <ButtonLink href="/configurateur" variant="secondary">Composer un bracelet</ButtonLink>}
         </div>
       </div>
     );

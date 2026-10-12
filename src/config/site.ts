@@ -7,6 +7,9 @@ export const site = {
   email: "bonjour@fildesable.fr",
   instagram: "fildesable",
   orderPrefix: "FDS",
+  // Le bracelet sur mesure (configurateur) est mis de côté le temps d'avoir le stock et le débit
+  // pour le proposer. Repasser à true pour le rouvrir : nav, accueil, page et panier suivent.
+  customEnabled: false,
   currency: "EUR",
   locale: "fr-FR",
 } as const;

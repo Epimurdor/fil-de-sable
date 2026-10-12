@@ -22,7 +22,8 @@ const productSchema = z.object({
   price: z.string().trim().regex(/^\d+([.,]\d{1,2})?$/, "Prix invalide (ex : 22 ou 22,50)."),
   leadTimeDays: z.coerce.number().int().min(1, "Délai minimum : 1 jour.").max(90),
   categoryId: z.string().min(1, "Catégorie requise."),
-  colors: z.string().trim().optional(),
+  colors: z.array(z.string()).optional(),
+  beads: z.array(z.string()).optional(),
   imageUrl: z.string().trim().optional(),
   optionsText: z.string().optional(),
   isActive: z.string().optional(),
@@ -34,16 +35,14 @@ function toCents(price: string): number {
   return Math.round(parseFloat(price.replace(",", ".")) * 100);
 }
 
-function parseColorList(raw: string | undefined): string[] {
-  return (raw ?? "")
-    .split(/[\s,;]+/)
-    .map((c) => c.trim())
-    .filter((c) => /^#[0-9a-f]{6}$/i.test(c));
+function parseColorList(raw: string[] | undefined): string[] {
+  return (raw ?? []).map((c) => c.trim()).filter((c) => /^#[0-9a-f]{6}$/i.test(c));
 }
 
 export async function saveProduct(_prev: AdminState, formData: FormData): Promise<AdminState> {
   await requireAdmin();
-  const parsed = productSchema.safeParse(Object.fromEntries(formData));
+  // Les couleurs sont des cases cochées : plusieurs valeurs sous le même nom.
+  const parsed = productSchema.safeParse({ ...Object.fromEntries(formData), colors: formData.getAll("colors").map(String), beads: formData.getAll("beads").map(String) });
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Formulaire invalide." };
   const d = parsed.data;
 
@@ -65,6 +64,7 @@ export async function saveProduct(_prev: AdminState, formData: FormData): Promis
     leadTimeDays: d.leadTimeDays,
     categoryId: d.categoryId,
     colors: JSON.stringify(parseColorList(d.colors)),
+    beads: JSON.stringify(parseColorList(d.beads)),
     imageUrl: d.imageUrl || null,
     isActive: d.isActive === "on",
     isFeatured: d.isFeatured === "on",
@@ -114,4 +114,40 @@ export async function updateOrderStatus(_prev: AdminState, formData: FormData): 
   revalidatePath("/admin", "layout");
   revalidatePath("/compte", "layout");
   return { success: "Statut mis à jour." };
+}
+
+// Stock de fournitures (fils et perles).
+const supplySchema = z.object({
+  id: z.string().optional(),
+  kind: z.enum(["fil", "perle"]),
+  name: z.string().trim().min(1, "Nom requis."),
+  hex: z.string().trim().regex(/^#[0-9a-f]{6}$/i, "Couleur invalide."),
+  quantity: z.coerce.number().int().min(0, "Quantité négative."),
+});
+
+export async function saveSupply(_prev: AdminState, formData: FormData): Promise<AdminState> {
+  await requireAdmin();
+  const parsed = supplySchema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Formulaire invalide." };
+  const d = parsed.data;
+  const hex = d.hex.toUpperCase();
+
+  const taken = await prisma.supply.findFirst({ where: { kind: d.kind, hex, ...(d.id ? { NOT: { id: d.id } } : {}) }, select: { name: true } });
+  if (taken) return { error: `Cette couleur existe déjà (${taken.name}).` };
+
+  if (d.id) {
+    await prisma.supply.update({ where: { id: d.id }, data: { name: d.name, hex, quantity: d.quantity } });
+  } else {
+    const last = await prisma.supply.aggregate({ where: { kind: d.kind }, _max: { sortOrder: true } });
+    await prisma.supply.create({ data: { kind: d.kind, name: d.name, hex, quantity: d.quantity, sortOrder: (last._max.sortOrder ?? 0) + 1 } });
+  }
+  revalidatePath("/", "layout");
+  return { success: d.id ? "Stock mis à jour." : "Ajouté au stock." };
+}
+
+export async function deleteSupply(formData: FormData): Promise<void> {
+  await requireAdmin();
+  const id = String(formData.get("id") ?? "");
+  if (id) await prisma.supply.delete({ where: { id } });
+  revalidatePath("/", "layout");
 }

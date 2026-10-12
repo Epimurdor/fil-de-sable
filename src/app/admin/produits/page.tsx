@@ -4,15 +4,19 @@ import { ProductVisual } from "@/components/product-visual";
 import { ButtonLink } from "@/components/ui/button";
 import { prisma } from "@/lib/db";
 import { formatPrice } from "@/lib/format";
+import { getInStock, missingSupplies } from "@/lib/products/availability";
 import { kindFromCategorySlug, parseColors } from "@/lib/types";
 
 export const metadata: Metadata = { title: "Produits" };
 
 export default async function AdminProductsPage() {
-  const products = await prisma.product.findMany({
-    include: { category: true, _count: { select: { options: true } } },
-    orderBy: [{ category: { sortOrder: "asc" } }, { sortOrder: "asc" }],
-  });
+  const [products, inStock] = await Promise.all([
+    prisma.product.findMany({
+      include: { category: true, _count: { select: { options: true } } },
+      orderBy: [{ category: { sortOrder: "asc" } }, { sortOrder: "asc" }],
+    }),
+    getInStock(),
+  ]);
 
   return (
     <div>
@@ -48,7 +52,12 @@ export default async function AdminProductsPage() {
                     {!p.isActive && <span className="rounded-lg bg-red-50 px-2 py-0.5 text-xs font-semibold text-red-700">masqué</span>}
                     {p.isFeatured && <span className="rounded-full bg-accent-soft px-2.5 py-0.5 text-xs font-semibold text-accent-strong">à la une</span>}
                     {p.isCustomizable && <span className="rounded-full bg-accent-soft px-2.5 py-0.5 text-xs font-semibold text-accent-strong">configurateur</span>}
-                    {p.isActive && !p.isFeatured && !p.isCustomizable && <span className="text-xs text-ink-3">en ligne</span>}
+                    {missingSupplies(p, inStock).length > 0 && (
+                      <span className="rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-semibold text-amber-800" title={missingSupplies(p, inStock).join(", ")}>
+                        fourniture manquante
+                      </span>
+                    )}
+                    {p.isActive && !p.isFeatured && !p.isCustomizable && missingSupplies(p, inStock).length === 0 && <span className="text-xs text-ink-3">en ligne</span>}
                   </span>
                 </td>
               </tr>

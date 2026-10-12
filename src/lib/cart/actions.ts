@@ -2,9 +2,11 @@
 
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
+import { site } from "@/config/site";
 import { prisma } from "@/lib/db";
 import { getCartId, getOrCreateCartId } from "./cart";
 import { productInclude } from "@/lib/products/queries";
+import { checkAvailable } from "@/lib/products/availability";
 import { resolveOptions } from "@/lib/products/pricing";
 import { customConfigSchema, customPriceCents } from "@/lib/configurator";
 import type { SelectedOptions } from "@/lib/types";
@@ -35,6 +37,7 @@ export async function addToCart(_prev: CartActionState, formData: FormData): Pro
     include: productInclude,
   });
   if (!product) return { error: "Produit introuvable." };
+  if (!(await checkAvailable(product))) return { error: "Il manque un fil pour cette pièce, elle revient dès que le stock est refait." };
 
   const resolved = resolveOptions(product, selectedFromForm(formData));
   if (!resolved.ok) return { error: resolved.error };
@@ -68,6 +71,7 @@ export async function addCustomBracelet(_prev: CartActionState, formData: FormDa
   } catch {
     return { error: "Configuration illisible." };
   }
+  if (!site.customEnabled) return { error: "Le bracelet sur mesure n'est pas disponible pour le moment." };
   const parsed = customConfigSchema.safeParse(json);
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Configuration invalide." };
 

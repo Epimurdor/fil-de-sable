@@ -1,10 +1,12 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
+import { cn } from "@/lib/cn";
 import { Fil } from "@/components/fil";
 import { ProductCard } from "@/components/product-card";
 import { ButtonLink } from "@/components/ui/button";
 import { formatPrice } from "@/lib/format";
+import { site } from "@/config/site";
 import { getFeaturedProducts } from "@/lib/products/queries";
 
 export default async function HomePage() {
@@ -34,7 +36,11 @@ export default async function HomePage() {
             <ButtonLink href="/boutique">
               Voir la boutique <ArrowRight className="h-4 w-4" />
             </ButtonLink>
-            <ButtonLink href="/configurateur" variant="secondary">Composer un bracelet</ButtonLink>
+            {site.customEnabled ? (
+              <ButtonLink href="/configurateur" variant="secondary">Composer un bracelet</ButtonLink>
+            ) : (
+              <ButtonLink href="/quiz" variant="secondary">Trouver mon bijou</ButtonLink>
+            )}
           </div>
         </div>
       </section>
@@ -93,7 +99,7 @@ export default async function HomePage() {
           </div>
           <ol className="reveal space-y-6 text-ink-2">
             {[
-              ["Tu choisis", "Un modèle de la boutique, ou ton bracelet composé fil par fil. Le délai est indiqué sur chaque pièce."],
+              ["Tu choisis", site.customEnabled ? "Un modèle de la boutique, ou ton bracelet composé fil par fil. Le délai est indiqué sur chaque pièce." : "Un modèle de la boutique, sa taille et ses options. Le délai est indiqué sur chaque pièce."],
               ["On noue", "Dès que la commande est payée, elle entre dans la file de l'atelier. Tu suis chaque étape depuis ton compte."],
               ["Ça arrive", "Dans ta boîte aux lettres, en lettre suivie, en point relais ou à domicile. Offert dès 60 €."],
             ].map(([t, d], i) => (
@@ -111,7 +117,8 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="mx-auto mt-24 grid max-w-6xl gap-5 px-4 sm:px-6 md:grid-cols-2">
+      <section className={cn("mx-auto mt-24 grid max-w-6xl gap-5 px-4 sm:px-6", site.customEnabled && "md:grid-cols-2")}>
+        {site.customEnabled && (
         <Link
           href="/configurateur"
           className="group reveal relative flex min-h-72 flex-col justify-between overflow-hidden rounded-2xl bg-gradient-to-br from-accent to-[#b8905a] p-8 text-ink shadow-soft transition-[box-shadow,transform] duration-300 hover:-translate-y-1 hover:shadow-lift"
@@ -125,6 +132,7 @@ export default async function HomePage() {
             Ouvrir le configurateur <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
           </span>
         </Link>
+        )}
         <Link
           href="/quiz"
           className="group reveal relative flex min-h-72 flex-col justify-between overflow-hidden rounded-2xl bg-gradient-to-br from-slate to-[#34475a] p-8 text-white shadow-soft transition-[box-shadow,transform] duration-300 hover:-translate-y-1 hover:shadow-lift [animation-delay:80ms]"

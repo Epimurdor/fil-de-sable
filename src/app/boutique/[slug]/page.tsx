@@ -6,6 +6,7 @@ import { Fil } from "@/components/fil";
 import { ProductCard } from "@/components/product-card";
 import { ProductVisual } from "@/components/product-visual";
 import { formatPrice, leadTimeLabel } from "@/lib/format";
+import { checkAvailable } from "@/lib/products/availability";
 import { getProductBySlug, getProducts } from "@/lib/products/queries";
 import { kindFromCategorySlug, parseColors, parseOptionValues } from "@/lib/types";
 
@@ -23,7 +24,10 @@ export default async function ProductPage({ params }: { params: Params }) {
   if (product.isCustomizable) redirect("/configurateur");
 
   const options = product.options.map((o) => ({ name: o.name, required: o.required, values: parseOptionValues(o.values) }));
-  const related = (await getProducts({ category: product.category.slug })).filter((p) => p.id !== product.id).slice(0, 4);
+  const [available, related] = await Promise.all([
+    checkAvailable(product),
+    getProducts({ category: product.category.slug }).then((list) => list.filter((p) => p.id !== product.id).slice(0, 4)),
+  ]);
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
@@ -51,7 +55,14 @@ export default async function ProductPage({ params }: { params: Params }) {
           <p className="mt-1 inline-flex items-center gap-2 text-sm text-ink-3"><span className="h-1.5 w-1.5 rounded-full bg-accent" aria-hidden />{leadTimeLabel(product.leadTimeDays)}, puis expédié.</p>
 
           <div className="mt-8">
-            <AddToCartForm productId={product.id} basePriceCents={product.priceCents} options={options} />
+            {available ? (
+              <AddToCartForm productId={product.id} basePriceCents={product.priceCents} options={options} />
+            ) : (
+              <div className="rounded-xl border border-dashed border-line-2 bg-paper-2 p-5 text-sm text-ink-2">
+                <p className="font-medium text-ink">Il manque un fil pour nouer cette pièce.</p>
+                <p className="mt-1">Elle revient dans la boutique dès que la bobine est réapprovisionnée. En attendant, regarde les pièces disponibles ci-dessous.</p>
+              </div>
+            )}
           </div>
 
           <p className="mt-10 leading-relaxed text-ink-2">{product.description}</p>

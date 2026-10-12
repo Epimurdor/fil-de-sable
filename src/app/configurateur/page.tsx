@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Fil } from "@/components/fil";
+import { redirect } from "next/navigation";
+import { site } from "@/config/site";
 import { Configurator } from "@/components/configurator";
 import { getCustomizableProduct } from "@/lib/products/queries";
 
@@ -9,6 +11,7 @@ export const metadata: Metadata = {
 };
 
 export default async function ConfiguratorPage() {
+  if (!site.customEnabled) redirect("/boutique");
   const product = await getCustomizableProduct();
 
   return (

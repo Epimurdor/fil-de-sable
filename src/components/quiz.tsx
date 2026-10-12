@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { ProductCard, type ProductCardData } from "@/components/product-card";
 import { Button } from "@/components/ui/button";
+import { site } from "@/config/site";
 import { cn } from "@/lib/cn";
 import { parseColors } from "@/lib/types";
 
@@ -80,9 +81,11 @@ export function Quiz({ products }: { products: ProductCardData[] }) {
         </div>
         <div className="mt-10 flex flex-wrap items-center gap-5">
           <Button type="button" variant="secondary" onClick={() => setPicked([])}>Recommencer</Button>
-          <Link href="/configurateur" className="link-fil pb-0.5 text-sm text-ink-2 hover:text-ink">
-            Ou compose-le à tes couleurs
-          </Link>
+          {site.customEnabled && (
+            <Link href="/configurateur" className="link-fil pb-0.5 text-sm text-ink-2 hover:text-ink">
+              Ou compose-le à tes couleurs
+            </Link>
+          )}
         </div>
       </div>
     );

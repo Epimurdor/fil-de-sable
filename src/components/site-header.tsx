@@ -6,7 +6,7 @@ import { NavLink } from "./nav-link";
 
 const links = [
   { href: "/boutique", label: "Boutique" },
-  { href: "/configurateur", label: "Sur mesure" },
+  ...(site.customEnabled ? [{ href: "/configurateur", label: "Sur mesure" }] : []),
   { href: "/quiz", label: "Trouver mon bijou" },
   { href: "/atelier", label: "L'atelier" },
 ];

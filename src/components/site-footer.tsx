@@ -17,7 +17,7 @@ export function SiteFooter() {
         </div>
         <ul className="space-y-2.5">
           <li><Link href="/boutique" className={linkClass}>Boutique</Link></li>
-          <li><Link href="/configurateur" className={linkClass}>Bracelet sur mesure</Link></li>
+          {site.customEnabled && <li><Link href="/configurateur" className={linkClass}>Bracelet sur mesure</Link></li>}
           <li><Link href="/quiz" className={linkClass}>Trouver mon bijou</Link></li>
           <li><Link href="/atelier" className={linkClass}>L'atelier</Link></li>
           <li><Link href="/compte" className={linkClass}>Mon compte</Link></li>

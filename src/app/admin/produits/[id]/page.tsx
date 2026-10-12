@@ -4,8 +4,10 @@ import { notFound } from "next/navigation";
 import { ProductForm } from "@/components/admin/product-form";
 import { SubmitButton } from "@/components/forms/submit-button";
 import { deleteProduct } from "@/lib/admin/actions";
+import { listProductPhotos } from "@/lib/admin/photos";
 import { formatOptionsText } from "@/lib/admin/options-text";
 import { prisma } from "@/lib/db";
+import { getSuppliesInStock } from "@/lib/supplies";
 import { getCategories } from "@/lib/products/queries";
 import { parseColors } from "@/lib/types";
 
@@ -13,9 +15,12 @@ export const metadata: Metadata = { title: "Modifier le produit" };
 
 export default async function EditProductPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const [product, categories] = await Promise.all([
+  const [product, categories, photos, threads, beads] = await Promise.all([
     prisma.product.findUnique({ where: { id }, include: { options: { orderBy: { sortOrder: "asc" } } } }),
     getCategories(),
+    listProductPhotos(),
+    getSuppliesInStock("fil"),
+    getSuppliesInStock("perle"),
   ]);
   if (!product) notFound();
 
@@ -31,6 +36,9 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
       <div className="mt-6">
         <ProductForm
           categories={categories}
+          photos={photos}
+          threads={threads}
+          beads={beads}
           product={{
             id: product.id,
             name: product.name,
@@ -40,7 +48,8 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
             price: (product.priceCents / 100).toFixed(2).replace(".", ","),
             leadTimeDays: product.leadTimeDays,
             categoryId: product.categoryId,
-            colors: parseColors(product.colors).join(", "),
+            colors: parseColors(product.colors),
+            beads: parseColors(product.beads),
             imageUrl: product.imageUrl ?? "",
             optionsText: formatOptionsText(product.options),
             isActive: product.isActive,

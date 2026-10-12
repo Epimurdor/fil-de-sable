@@ -41,7 +41,7 @@ export default function AtelierPage() {
           </div>
           <div className="mt-8 flex flex-wrap gap-3">
             <ButtonLink href="/boutique">Voir la boutique</ButtonLink>
-            <ButtonLink href="/configurateur" variant="secondary">Composer un bracelet</ButtonLink>
+            {site.customEnabled && <ButtonLink href="/configurateur" variant="secondary">Composer un bracelet</ButtonLink>}
           </div>
           <p className="mt-10 border-t border-line pt-6 text-sm text-ink-2">
             Une question, un cadeau à préparer ? Écris à{" "}

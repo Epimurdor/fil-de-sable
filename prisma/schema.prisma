@@ -1,0 +1,182 @@
+// Schema volontairement sans enum ni Json natif pour rester portable SQLite (dev) -> PostgreSQL (prod).
+// Les statuts et les JSON sont types cote TypeScript dans src/lib.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  passwordHash String
+  firstName    String
+  lastName     String
+  role         String    @default("customer") // customer | admin
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  sessions     Session[]
+  orders       Order[]
+  addresses    Address[]
+  carts        Cart[]
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+model Category {
+  id          String    @id @default(cuid())
+  slug        String    @unique
+  name        String
+  description String?
+  sortOrder   Int       @default(0)
+  products    Product[]
+}
+
+model Product {
+  id             String          @id @default(cuid())
+  slug           String          @unique
+  name           String
+  tagline        String?
+  description    String
+  priceCents     Int
+  leadTimeDays   Int             @default(7) // delai de confection (sur commande)
+  colors         String          @default("[]") // JSON string[] (hex) pour le visuel genere
+  imageUrl       String?
+  isActive       Boolean         @default(true)
+  isFeatured     Boolean         @default(false)
+  isCustomizable Boolean         @default(false) // produit du configurateur
+  sortOrder      Int             @default(0)
+  categoryId     String
+  category       Category        @relation(fields: [categoryId], references: [id])
+  options        ProductOption[]
+  cartItems      CartItem[]
+  orderItems     OrderItem[]
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  @@index([categoryId])
+}
+
+model ProductOption {
+  id        String  @id @default(cuid())
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  name      String // ex: "Taille de poignet"
+  values    String // JSON OptionValue[] : { value, label, priceDeltaCents }
+  required  Boolean @default(true)
+  sortOrder Int     @default(0)
+}
+
+model Cart {
+  id        String     @id @default(cuid())
+  userId    String?
+  user      User?      @relation(fields: [userId], references: [id], onDelete: SetNull)
+  items     CartItem[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model CartItem {
+  id              String  @id @default(cuid())
+  cartId          String
+  cart            Cart    @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  productId       String
+  product         Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  quantity        Int     @default(1)
+  selectedOptions String  @default("{}") // JSON Record<optionName, value>
+  customConfig    String? // JSON CustomConfig (configurateur)
+  unitPriceCents  Int
+
+  @@index([cartId])
+}
+
+model Address {
+  id         String  @id @default(cuid())
+  userId     String
+  user       User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fullName   String
+  line1      String
+  line2      String?
+  postalCode String
+  city       String
+  phone      String?
+  isDefault  Boolean @default(false)
+}
+
+model ShippingMethod {
+  id             String  @id @default(cuid())
+  code           String  @unique
+  name           String
+  description    String?
+  priceCents     Int
+  freeAboveCents Int?
+  isActive       Boolean @default(true)
+  sortOrder      Int     @default(0)
+}
+
+model Order {
+  id              String       @id @default(cuid())
+  number          String       @unique // FDS-2026-0001
+  userId          String
+  user            User         @relation(fields: [userId], references: [id])
+  status          String       @default("pending") // voir ORDER_STATUSES (src/lib/orders/status.ts)
+  subtotalCents   Int
+  shippingCents   Int
+  totalCents      Int
+  shippingCode    String
+  shippingName    String
+  shipFullName    String
+  shipLine1       String
+  shipLine2       String?
+  shipPostalCode  String
+  shipCity        String
+  shipPhone       String?
+  customerNote    String?
+  paymentProvider String       @default("mock")
+  paymentRef      String?
+  paidAt          DateTime?
+  items           OrderItem[]
+  events          OrderEvent[]
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  @@index([userId])
+}
+
+model OrderItem {
+  id              String   @id @default(cuid())
+  orderId         String
+  order           Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId       String?
+  product         Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  name            String // instantane au moment de la commande
+  colors          String   @default("[]")
+  unitPriceCents  Int
+  quantity        Int
+  selectedOptions String   @default("{}")
+  customConfig    String?
+}
+
+model OrderEvent {
+  id        String   @id @default(cuid())
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  status    String
+  note      String?
+  createdAt DateTime @default(now())
+
+  @@index([orderId])
+}

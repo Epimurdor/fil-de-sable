@@ -12,14 +12,15 @@ type Props = {
   className?: string;
   priority?: boolean;
   sizes?: string;
+  // Croquis SVG à partir des couleurs : réservé au configurateur et aux pièces sur mesure,
+  // qui n'ont pas de photo par nature. Partout ailleurs, pas de photo = case « photo à venir ».
+  sketch?: boolean;
 };
 
-// Visuel d'un bijou : la photo si elle existe, sinon un dessin SVG généré à partir des couleurs de fil.
-// Le même composant sert au configurateur (aperçu en direct).
-export function ProductVisual({ colors, kind = "bracelet", imageUrl, alt, beadHex, pattern, className, priority, sizes }: Props) {
+export function ProductVisual({ colors, kind = "bracelet", imageUrl, alt, beadHex, pattern, className, priority, sizes, sketch }: Props) {
   if (imageUrl) {
     return (
-      <div className={cn("relative overflow-hidden bg-sand-100", className)}>
+      <div className={cn("relative overflow-hidden bg-paper-2", className)}>
         <Image
           src={imageUrl}
           alt={alt}
@@ -31,9 +32,20 @@ export function ProductVisual({ colors, kind = "bracelet", imageUrl, alt, beadHe
       </div>
     );
   }
+  if (sketch) {
+    return (
+      <div className={cn("relative overflow-hidden bg-paper-2", className)}>
+        <JewelSvg colors={colors.length ? colors : ["#4a5e72"]} kind={kind} beadHex={beadHex} pattern={pattern} title={alt} />
+      </div>
+    );
+  }
   return (
-    <div className={cn("relative overflow-hidden bg-sand-100", className)}>
-      <JewelSvg colors={colors.length ? colors : ["#C96F4A"]} kind={kind} beadHex={beadHex} pattern={pattern} title={alt} />
+    <div
+      className={cn("flex items-center justify-center bg-paper-2 px-1 text-center text-[11px] leading-tight text-ink-3", className)}
+      role="img"
+      aria-label={`${alt}, photo à venir`}
+    >
+      Photo à venir
     </div>
   );
 }
@@ -60,8 +72,8 @@ function ringPath(cx: number, cy: number, rx: number, ry: number, amp: number, k
 function Bead({ x, y, r, hex }: { x: number; y: number; r: number; hex: string }) {
   return (
     <g>
-      <circle cx={x} cy={y + r * 0.35} r={r * 1.05} fill="rgba(62,47,37,0.18)" />
-      <circle cx={x} cy={y} r={r} fill={hex} stroke="rgba(62,47,37,0.25)" strokeWidth={1} />
+      <circle cx={x} cy={y + r * 0.35} r={r * 1.05} fill="rgba(30,31,28,0.16)" />
+      <circle cx={x} cy={y} r={r} fill={hex} stroke="rgba(30,31,28,0.25)" strokeWidth={1} />
       <circle cx={x - r * 0.35} cy={y - r * 0.35} r={r * 0.3} fill="rgba(255,255,255,0.65)" />
     </g>
   );
@@ -74,14 +86,7 @@ function JewelSvg({ colors, kind, beadHex, pattern, title }: { colors: string[];
 
   return (
     <svg viewBox="0 0 400 400" role="img" aria-label={title} className="h-full w-full">
-      <defs>
-        <radialGradient id="bg" cx="50%" cy="40%" r="70%">
-          <stop offset="0%" stopColor="#fbf7f0" />
-          <stop offset="100%" stopColor="#ecdfc7" />
-        </radialGradient>
-      </defs>
-      <rect width="400" height="400" fill="url(#bg)" />
-
+      <rect width="400" height="400" fill="#f1f1ed" />
       {kind === "collier" ? (
         <g fill="none" strokeLinecap="round">
           {colors.map((c, i) => {
@@ -94,20 +99,11 @@ function JewelSvg({ colors, kind, beadHex, pattern, title }: { colors: string[];
               </g>
             );
           })}
-          {[-28, -14, 0, 14, 28].map((dx, i) => (
-            <path
-              key={i}
-              d={`M 200 200 Q ${200 + dx * 1.4} 250 ${200 + dx * 2} 300`}
-              stroke={colors[i % n]}
-              strokeWidth={6}
-              strokeDasharray="2 4"
-            />
-          ))}
           {beadHex && <Bead x={200} y={200} r={13} hex={beadHex} />}
         </g>
       ) : (
         <g fill="none" strokeLinecap="round">
-          <ellipse cx="200" cy={kind === "bague" ? 245 : 250} rx={kind === "bague" ? 95 : 150} ry={kind === "bague" ? 26 : 34} fill="rgba(62,47,37,0.08)" />
+          <ellipse cx="200" cy={kind === "bague" ? 245 : 250} rx={kind === "bague" ? 95 : 150} ry={kind === "bague" ? 26 : 34} fill="rgba(30,31,28,0.07)" />
           {colors.map((c, i) => {
             const off = (i - (n - 1) / 2) * spread;
             const rx = (kind === "bague" ? 92 : 145) + off;

@@ -46,3 +46,6 @@ next-env.d.ts
 # sqlite dev database
 /prisma/*.db
 /prisma/*.db-journal
+
+# ruflo local state
+/.claude-flow/

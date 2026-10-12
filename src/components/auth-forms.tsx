@@ -7,7 +7,7 @@ import { login, register, type AuthState } from "@/lib/auth/actions";
 function ErrorLine({ error }: { error?: string }) {
   if (!error) return null;
   return (
-    <p role="alert" className="rounded-xl bg-red-50 px-4 py-2 text-sm text-red-700">
+    <p role="alert" className="rounded-md bg-red-50 px-4 py-2 text-sm text-red-700">
       {error}
     </p>
   );
@@ -52,7 +52,7 @@ export function RegisterForm({ next }: { next: string }) {
         <input id="email" name="email" type="email" className="field" autoComplete="email" required />
       </div>
       <div>
-        <label className="label" htmlFor="password">Mot de passe <span className="font-normal text-bark-500">(8 caractères minimum)</span></label>
+        <label className="label" htmlFor="password">Mot de passe <span className="font-normal text-ink-3">(8 caractères minimum)</span></label>
         <input id="password" name="password" type="password" className="field" autoComplete="new-password" minLength={8} required />
       </div>
       <ErrorLine error={state.error} />

@@ -1,111 +1,48 @@
 @import "tailwindcss";
 
-/* Thème « bohème / nature » : sable, terracotta, sauge, écorce. */
+/* Une seule famille de caractères, un papier presque blanc, une encre, un seul accent
+   (le bleu ardoise du fil des bracelets photographiés). */
 @theme {
-  --color-sand-50: #fbf7f0;
-  --color-sand-100: #f3ebdd;
-  --color-sand-200: #e8d5b5;
-  --color-sand-300: #d9c09a;
+  --color-paper: #fbfbf9;
+  --color-paper-2: #f1f1ed;
+  --color-line: #e3e3dd;
+  --color-line-2: #c9c9c1;
+  --color-ink: #1e1f1c;
+  --color-ink-2: #4a4b46;
+  --color-ink-3: #6b6c66;
+  --color-accent: #4a5e72;
+  --color-accent-strong: #34475a;
+  --color-accent-soft: #e7ecf1;
 
-  --color-terracotta-100: #f6e3d9;
-  --color-terracotta-500: #c96f4a;
-  --color-terracotta-600: #b25c3a;
-  --color-terracotta-700: #8f4a2f;
-
-  --color-sage-100: #e6ebe0;
-  --color-sage-400: #a3b093;
-  --color-sage-500: #8a9a7b;
-  --color-sage-600: #6f7f62;
-  --color-sage-700: #4f6b4e;
-
-  --color-bark-500: #8a6f5e;
-  --color-bark-700: #5a463a;
-  --color-bark-800: #3e2f25;
-  --color-bark-900: #2b1f18;
-
-  --color-ocre-100: #f8ecd0;
-  --color-ocre-400: #e2b55c;
-  --color-ocre-500: #d9a441;
-
-  --font-display: var(--font-fraunces), Georgia, "Times New Roman", serif;
-  --font-body: var(--font-nunito), system-ui, -apple-system, sans-serif;
-
-  --radius-blob: 2rem;
-  --shadow-soft: 0 18px 40px -24px rgb(62 47 37 / 0.35);
+  --font-sans: var(--font-bricolage), system-ui, sans-serif;
+  --font-display: var(--font-bricolage), system-ui, sans-serif;
 }
 
 :root {
   color-scheme: light;
 }
 
-html {
-  scroll-behavior: smooth;
-}
-
 body {
-  background-color: var(--color-sand-50);
-  color: var(--color-bark-800);
-  font-family: var(--font-body);
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
 }
 
 h1,
 h2,
-h3,
-.font-display {
-  font-family: var(--font-display);
-  letter-spacing: -0.01em;
+h3 {
+  letter-spacing: -0.015em;
 }
 
 ::selection {
-  background: var(--color-terracotta-100);
-  color: var(--color-bark-900);
-}
-
-/* Formes organiques pour les visuels. */
-.blob-a {
-  border-radius: 58% 42% 36% 64% / 54% 36% 64% 46%;
-}
-.blob-b {
-  border-radius: 42% 58% 60% 40% / 40% 52% 48% 60%;
-}
-
-/* Bandeau défilant. */
-@keyframes marquee {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(-50%);
-  }
-}
-.marquee-track {
-  animation: marquee 28s linear infinite;
-}
-@media (prefers-reduced-motion: reduce) {
-  .marquee-track {
-    animation: none;
-  }
-}
-
-/* Grain discret sur les grands aplats. */
-.grain {
-  position: relative;
-}
-.grain::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  opacity: 0.06;
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
-  border-radius: inherit;
+  background: var(--color-accent-soft);
 }
 
 /* Champs de formulaire. */
 .field {
-  @apply w-full rounded-xl border border-sand-300 bg-white px-4 py-3 text-bark-800 placeholder:text-bark-500/60 focus:border-terracotta-500 focus:outline-none focus:ring-2 focus:ring-terracotta-500/20;
+  @apply w-full rounded-md border border-line-2 bg-white px-3.5 py-2.5 text-ink placeholder:text-ink-3 focus:border-ink focus:outline-none focus:ring-1 focus:ring-ink;
 }
 .label {
-  @apply mb-1.5 block text-sm font-semibold text-bark-700;
+  @apply mb-1.5 block text-sm font-medium text-ink-2;
 }

@@ -12,9 +12,8 @@ export default async function ConfiguratorPage() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
-      <p className="text-xs font-semibold uppercase tracking-wider text-terracotta-600">Sur mesure</p>
-      <h1 className="mt-1 font-display text-4xl font-semibold text-bark-900 sm:text-5xl">Compose ton bracelet</h1>
-      <p className="mt-2 max-w-xl text-bark-500">
+      <h1 className="mt-1 text-3xl font-medium tracking-tight text-ink sm:text-4xl">Compose ton bracelet</h1>
+      <p className="mt-2 max-w-xl text-ink-3">
         Jusqu'à trois fils, une perle, un motif, ta taille. L'aperçu est une esquisse : le vrai est noué à la main, avec les
         petites irrégularités qui vont avec.
       </p>
@@ -22,7 +21,7 @@ export default async function ConfiguratorPage() {
         {product ? (
           <Configurator basePriceCents={product.priceCents} leadTimeDays={product.leadTimeDays} />
         ) : (
-          <p className="rounded-3xl border border-dashed border-sand-300 p-8 text-center text-bark-500">
+          <p className="rounded-md border border-dashed border-line-2 p-8 text-center text-ink-3">
             Le configurateur revient très vite.
           </p>
         )}

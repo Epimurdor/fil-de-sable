@@ -50,7 +50,7 @@ export function ProductForm({
   return (
     <form action={action} className="grid gap-8 lg:grid-cols-[1fr_340px]">
       {v.id && <input type="hidden" name="id" value={v.id} />}
-      <div className="space-y-5 rounded-3xl border border-sand-200 bg-white p-6">
+      <div className="space-y-5 rounded-md border border-line bg-white p-6">
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
             <label className="label" htmlFor="name">Nom</label>
@@ -87,16 +87,16 @@ export function ProductForm({
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
-            <label className="label" htmlFor="colors">Couleurs des fils <span className="font-normal text-bark-500">(hex, séparées par des virgules)</span></label>
+            <label className="label" htmlFor="colors">Couleurs des fils <span className="font-normal text-ink-3">(hex, séparées par des virgules)</span></label>
             <input id="colors" name="colors" className="field" defaultValue={v.colors} placeholder="#4F6478, #F2EFE6" />
           </div>
           <div>
-            <label className="label" htmlFor="imageUrl">Photo <span className="font-normal text-bark-500">(chemin dans /public)</span></label>
+            <label className="label" htmlFor="imageUrl">Photo <span className="font-normal text-ink-3">(chemin dans /public)</span></label>
             <input id="imageUrl" name="imageUrl" className="field" defaultValue={v.imageUrl} placeholder="/images/produits/mon-bracelet.jpg" />
           </div>
         </div>
         <div>
-          <label className="label" htmlFor="optionsText">Options <span className="font-normal text-bark-500">(une par ligne)</span></label>
+          <label className="label" htmlFor="optionsText">Options <span className="font-normal text-ink-3">(une par ligne)</span></label>
           <textarea
             id="optionsText"
             name="optionsText"
@@ -105,15 +105,15 @@ export function ProductForm({
             defaultValue={v.optionsText}
             placeholder={"Taille de poignet: S=S · 14 à 15 cm, M=M · 15 à 17 cm, L=L · 17 à 19 cm\nPerle: aucune=Sans perle, bois=Perle en bois (+2), lave=Pierre de lave (+4)"}
           />
-          <p className="mt-1 text-xs text-bark-500">Format : <code>Nom: valeur=Libellé (+supplément), valeur2=Libellé 2</code></p>
+          <p className="mt-1 text-xs text-ink-3">Format : <code>Nom: valeur=Libellé (+supplément), valeur2=Libellé 2</code></p>
         </div>
       </div>
 
-      <aside className="h-fit space-y-4 rounded-3xl border border-sand-200 bg-white p-6 lg:sticky lg:top-24">
-        <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="isActive" defaultChecked={v.isActive} className="h-4 w-4 accent-terracotta-500" /> Visible dans la boutique</label>
-        <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="isFeatured" defaultChecked={v.isFeatured} className="h-4 w-4 accent-terracotta-500" /> À la une sur l'accueil</label>
-        <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="isCustomizable" defaultChecked={v.isCustomizable} className="h-4 w-4 accent-terracotta-500" /> Produit du configurateur</label>
-        {state.error && <p role="alert" className="rounded-xl bg-red-50 px-4 py-2 text-sm text-red-700">{state.error}</p>}
+      <aside className="h-fit space-y-4 rounded-md border border-line bg-white p-6 lg:sticky lg:top-24">
+        <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="isActive" defaultChecked={v.isActive} className="h-4 w-4 accent-accent" /> Visible dans la boutique</label>
+        <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="isFeatured" defaultChecked={v.isFeatured} className="h-4 w-4 accent-accent" /> À la une sur l'accueil</label>
+        <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="isCustomizable" defaultChecked={v.isCustomizable} className="h-4 w-4 accent-accent" /> Produit du configurateur</label>
+        {state.error && <p role="alert" className="rounded-md bg-red-50 px-4 py-2 text-sm text-red-700">{state.error}</p>}
         <SubmitButton pendingText="Enregistrement…" className="w-full">{v.id ? "Enregistrer" : "Créer le produit"}</SubmitButton>
       </aside>
     </form>

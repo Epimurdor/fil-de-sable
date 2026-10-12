@@ -21,6 +21,9 @@ function href(categorie: string | undefined, tri: string | undefined) {
   return s ? `/boutique?${s}` : "/boutique";
 }
 
+const linkClass = (active: boolean) =>
+  cn("underline-offset-4 transition-colors", active ? "text-ink underline" : "text-ink-2 hover:text-ink");
+
 export default async function ShopPage({
   searchParams,
 }: {
@@ -33,39 +36,22 @@ export default async function ShopPage({
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
-      <h1 className="font-display text-4xl font-semibold text-bark-900 sm:text-5xl">{current?.name ?? "La boutique"}</h1>
-      <p className="mt-2 max-w-xl text-bark-500">
-        {current?.description ?? "Tout est noué à la main après ta commande. Les délais sont indiqués sur chaque pièce."}
+      <h1 className="text-3xl font-medium tracking-tight text-ink sm:text-4xl">{current?.name ?? "Boutique"}</h1>
+      <p className="mt-2 max-w-xl text-ink-2">
+        {current?.description ?? "Tout est noué à la main après ta commande. Le délai est indiqué sur chaque pièce."}
       </p>
 
-      <div className="mt-8 flex flex-wrap items-center justify-between gap-4">
-        <div className="flex flex-wrap gap-2">
-          {[{ slug: undefined, name: "Tout" }, ...categories].map((c) => {
-            const active = (c.slug ?? "") === (categorie ?? "");
-            return (
-              <Link
-                key={c.slug ?? "all"}
-                href={href(c.slug, tri)}
-                className={cn(
-                  "rounded-full border px-4 py-1.5 text-sm font-semibold transition",
-                  active ? "border-bark-900 bg-bark-900 text-sand-50" : "border-sand-300 bg-white text-bark-700 hover:border-bark-500",
-                )}
-              >
-                {c.name}
-              </Link>
-            );
-          })}
+      <div className="mt-8 flex flex-wrap items-center justify-between gap-x-8 gap-y-3 border-b border-line pb-4 text-sm">
+        <div className="flex flex-wrap gap-5">
+          {[{ slug: undefined, name: "Tout" }, ...categories].map((c) => (
+            <Link key={c.slug ?? "all"} href={href(c.slug, tri)} className={linkClass((c.slug ?? "") === (categorie ?? ""))}>
+              {c.name}
+            </Link>
+          ))}
         </div>
-        <div className="flex flex-wrap gap-1 text-sm">
+        <div className="flex flex-wrap gap-4 text-ink-3">
           {sorts.map((s) => (
-            <Link
-              key={s.value}
-              href={href(categorie, s.value || undefined)}
-              className={cn(
-                "rounded-full px-3 py-1.5 transition",
-                (sort ?? "") === s.value ? "bg-sand-200 font-semibold text-bark-900" : "text-bark-500 hover:text-bark-900",
-              )}
-            >
+            <Link key={s.value} href={href(categorie, s.value || undefined)} className={linkClass((sort ?? "") === s.value)}>
               {s.label}
             </Link>
           ))}
@@ -73,9 +59,9 @@ export default async function ShopPage({
       </div>
 
       {products.length === 0 ? (
-        <p className="mt-16 text-center text-bark-500">Rien par ici pour le moment. L'atelier prépare la suite.</p>
+        <p className="mt-16 text-ink-2">Rien par ici pour le moment.</p>
       ) : (
-        <div className="mt-10 grid grid-cols-2 gap-x-5 gap-y-10 md:grid-cols-3 lg:grid-cols-4">
+        <div className="mt-8 grid grid-cols-2 gap-x-5 gap-y-10 md:grid-cols-3 lg:grid-cols-4">
           {products.map((p, i) => (
             <ProductCard key={p.id} product={p} priority={i < 4} />
           ))}

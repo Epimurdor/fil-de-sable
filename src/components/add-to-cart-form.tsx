@@ -43,8 +43,8 @@ export function AddToCartForm({
                 <label
                   key={v.value}
                   className={cn(
-                    "cursor-pointer rounded-full border px-3.5 py-1.5 text-sm font-medium transition",
-                    active ? "border-bark-900 bg-bark-900 text-sand-50" : "border-sand-300 bg-white text-bark-700 hover:border-bark-500",
+                    "cursor-pointer rounded-md border px-3.5 py-1.5 text-sm font-medium transition",
+                    active ? "border-ink bg-ink text-paper" : "border-line-2 bg-white text-ink-2 hover:border-ink-3",
                   )}
                 >
                   <input
@@ -65,12 +65,12 @@ export function AddToCartForm({
       ))}
 
       <div className="flex flex-wrap items-center gap-4">
-        <div className="inline-flex items-center rounded-full border border-sand-300 bg-white">
-          <button type="button" onClick={() => setQty((q) => Math.max(1, q - 1))} className="px-3 py-2 text-bark-700 hover:text-bark-900" aria-label="Moins">
+        <div className="inline-flex items-center rounded-md border border-line-2 bg-white">
+          <button type="button" onClick={() => setQty((q) => Math.max(1, q - 1))} className="px-3 py-2 text-ink-2 hover:text-ink" aria-label="Moins">
             <Minus className="h-4 w-4" />
           </button>
           <span className="w-8 text-center text-sm font-semibold">{qty}</span>
-          <button type="button" onClick={() => setQty((q) => Math.min(10, q + 1))} className="px-3 py-2 text-bark-700 hover:text-bark-900" aria-label="Plus">
+          <button type="button" onClick={() => setQty((q) => Math.min(10, q + 1))} className="px-3 py-2 text-ink-2 hover:text-ink" aria-label="Plus">
             <Plus className="h-4 w-4" />
           </button>
           <input type="hidden" name="quantity" value={qty} />
@@ -81,7 +81,7 @@ export function AddToCartForm({
       </div>
 
       {state.error && (
-        <p role="alert" className="rounded-xl bg-red-50 px-4 py-2 text-sm text-red-700">
+        <p role="alert" className="rounded-md bg-red-50 px-4 py-2 text-sm text-red-700">
           {state.error}
         </p>
       )}

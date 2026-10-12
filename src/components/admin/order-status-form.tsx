@@ -19,11 +19,11 @@ export function OrderStatusForm({ orderId, current }: { orderId: string; current
         </select>
       </div>
       <div>
-        <label className="label" htmlFor="note">Note pour le client <span className="font-normal text-bark-500">(facultatif)</span></label>
+        <label className="label" htmlFor="note">Note pour le client <span className="font-normal text-ink-3">(facultatif)</span></label>
         <input id="note" name="note" className="field" placeholder="Ex : numéro de suivi, précision sur la perle…" />
       </div>
-      {state.error && <p role="alert" className="rounded-xl bg-red-50 px-4 py-2 text-sm text-red-700">{state.error}</p>}
-      {state.success && <p className="rounded-xl bg-sage-100 px-4 py-2 text-sm text-sage-700">{state.success}</p>}
+      {state.error && <p role="alert" className="rounded-md bg-red-50 px-4 py-2 text-sm text-red-700">{state.error}</p>}
+      {state.success && <p className="rounded-md bg-accent-soft px-4 py-2 text-sm text-accent-strong">{state.success}</p>}
       <SubmitButton pendingText="Mise à jour…" variant="dark" className="w-full">Mettre à jour</SubmitButton>
     </form>
   );

@@ -13,19 +13,19 @@ export default async function OrdersPage() {
 
   return (
     <div>
-      <h1 className="font-display text-4xl font-semibold text-bark-900">Mes commandes</h1>
+      <h1 className="text-3xl font-medium tracking-tight text-ink">Mes commandes</h1>
       {orders.length === 0 ? (
-        <p className="mt-6 rounded-3xl border border-dashed border-sand-300 p-6 text-sm text-bark-500">
-          Rien pour l'instant. <Link href="/boutique" className="font-semibold text-terracotta-600 hover:underline">Voir la boutique</Link>
+        <p className="mt-6 rounded-md border border-dashed border-line-2 p-6 text-sm text-ink-3">
+          Rien pour l'instant. <Link href="/boutique" className="font-semibold text-accent-strong hover:underline">Voir la boutique</Link>
         </p>
       ) : (
-        <ul className="mt-6 divide-y divide-sand-200 rounded-3xl border border-sand-200 bg-white/70">
+        <ul className="mt-6 divide-y divide-line rounded-md border border-line bg-white/70">
           {orders.map((o) => (
             <li key={o.id}>
-              <Link href={`/compte/commandes/${o.number}`} className="flex items-center justify-between gap-4 px-6 py-4 transition hover:bg-sand-50">
+              <Link href={`/compte/commandes/${o.number}`} className="flex items-center justify-between gap-4 px-6 py-4 transition hover:bg-paper">
                 <div>
-                  <p className="font-semibold text-bark-900">{o.number}</p>
-                  <p className="text-sm text-bark-500">
+                  <p className="font-semibold text-ink">{o.number}</p>
+                  <p className="text-sm text-ink-3">
                     {formatDate(o.createdAt)} · {o.items.map((i) => i.name).join(", ")}
                   </p>
                 </div>

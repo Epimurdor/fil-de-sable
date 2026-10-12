@@ -7,32 +7,32 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/cn";
 import { parseColors } from "@/lib/types";
 
-type Answer = { label: string; emoji: string; palette?: string[]; category?: string; bold?: boolean };
+type Answer = { label: string; palette?: string[]; category?: string; bold?: boolean };
 
 const questions: { title: string; answers: Answer[] }[] = [
   {
-    title: "Ton ambiance, c'est plutôt…",
+    title: "Ton ambiance, c'est plutôt",
     answers: [
-      { label: "Bord de mer", emoji: "🌊", palette: ["#4F6478", "#7E9BB0", "#F3EBDD", "#F2EFE6", "#E8D5B5"] },
-      { label: "Terre et soleil", emoji: "🌅", palette: ["#C96F4A", "#D9A441", "#6B4F3A", "#D8A49B"] },
-      { label: "Sous-bois", emoji: "🌿", palette: ["#8A9A7B", "#4F6B4E", "#F3EBDD"] },
-      { label: "Nuit douce", emoji: "🌙", palette: ["#2B2B2B", "#7A3B3B", "#5E4B4F", "#E8C4D0"] },
+      { label: "Bord de mer", palette: ["#4F6478", "#7E9BB0", "#F3EBDD", "#F2EFE6", "#E8D5B5"] },
+      { label: "Terre et soleil", palette: ["#C96F4A", "#D9A441", "#6B4F3A", "#D8A49B"] },
+      { label: "Sous-bois", palette: ["#8A9A7B", "#4F6B4E", "#F3EBDD"] },
+      { label: "Nuit douce", palette: ["#2B2B2B", "#7A3B3B", "#5E4B4F", "#E8C4D0"] },
     ],
   },
   {
     title: "Tu le portes où ?",
     answers: [
-      { label: "Au poignet", emoji: "✋", category: "bracelets" },
-      { label: "Au doigt", emoji: "💍", category: "bagues" },
-      { label: "Autour du cou", emoji: "✨", category: "colliers" },
-      { label: "Surprends-moi", emoji: "🎲" },
+      { label: "Au poignet", category: "bracelets" },
+      { label: "Au doigt", category: "bagues" },
+      { label: "Autour du cou", category: "colliers" },
+      { label: "Peu importe" },
     ],
   },
   {
-    title: "Et plutôt…",
+    title: "Et plutôt",
     answers: [
-      { label: "Discret, un fil, une couleur", emoji: "🤫", bold: false },
-      { label: "Qu'on le remarque", emoji: "🔥", bold: true },
+      { label: "Discret, un fil, une couleur", bold: false },
+      { label: "Qu'on le remarque", bold: true },
     ],
   },
 ];
@@ -64,23 +64,24 @@ export function Quiz({ products }: { products: ProductCardData[] }) {
   const step = picked.length;
   const done = step >= questions.length;
 
-  const results = done
-    ? [...products].map((p) => ({ p, s: score(p, picked) })).sort((a, b) => b.s - a.s).slice(0, 3).map((r) => r.p)
-    : [];
-
   if (done) {
+    const results = [...products]
+      .map((p) => ({ p, s: score(p, picked) }))
+      .sort((a, b) => b.s - a.s)
+      .slice(0, 3)
+      .map((r) => r.p);
     return (
       <div>
-        <h2 className="font-display text-2xl font-semibold text-bark-900">
-          {picked[0]?.emoji} {picked[1]?.emoji} {picked[2]?.emoji} Voilà ce qu'on te verrait bien porter
-        </h2>
-        <div className="mt-8 grid grid-cols-2 gap-x-5 gap-y-10 md:grid-cols-3">
-          {results.map((p) => <ProductCard key={p.slug} product={p} />)}
+        <h2 className="text-2xl font-medium tracking-tight text-ink">Ce qu'on te verrait bien porter</h2>
+        <div className="mt-6 grid grid-cols-2 gap-x-5 gap-y-10 md:grid-cols-3">
+          {results.map((p) => (
+            <ProductCard key={p.slug} product={p} />
+          ))}
         </div>
-        <div className="mt-10 flex flex-wrap items-center gap-4">
+        <div className="mt-10 flex flex-wrap items-center gap-5">
           <Button type="button" variant="secondary" onClick={() => setPicked([])}>Recommencer</Button>
-          <Link href="/configurateur" className="text-sm font-semibold text-terracotta-600 hover:underline">
-            Ou compose-le à tes couleurs →
+          <Link href="/configurateur" className="text-sm text-ink-2 underline-offset-4 hover:underline">
+            Ou compose-le à tes couleurs
           </Link>
         </div>
       </div>
@@ -90,34 +91,32 @@ export function Quiz({ products }: { products: ProductCardData[] }) {
   const q = questions[step];
   return (
     <div>
-      <div className="flex gap-1.5">
-        {questions.map((_, i) => (
-          <span key={i} className={cn("h-1.5 flex-1 rounded-full", i <= step ? "bg-terracotta-500" : "bg-sand-200")} />
-        ))}
-      </div>
-      <p className="mt-6 text-sm text-bark-500">Question {step + 1} sur {questions.length}</p>
-      <h2 className="mt-1 font-display text-3xl font-semibold text-bark-900">{q.title}</h2>
+      <p className="text-sm text-ink-3">Question {step + 1} sur {questions.length}</p>
+      <h2 className="mt-1 text-2xl font-medium tracking-tight text-ink sm:text-3xl">{q.title}</h2>
       <div className="mt-6 grid gap-3 sm:grid-cols-2">
         {q.answers.map((a) => (
           <button
             key={a.label}
             type="button"
             onClick={() => setPicked((p) => [...p, a])}
-            className="flex items-center gap-4 rounded-3xl border border-sand-300 bg-white p-5 text-left transition hover:-translate-y-0.5 hover:border-bark-900"
+            className={cn(
+              "flex items-center justify-between gap-4 rounded-md border border-line-2 bg-white px-5 py-4 text-left text-ink transition-colors hover:border-ink",
+            )}
           >
-            <span className="text-3xl" aria-hidden>{a.emoji}</span>
-            <span className="font-semibold text-bark-900">{a.label}</span>
+            <span className="font-medium">{a.label}</span>
             {a.palette && (
-              <span className="ml-auto flex gap-1">
-                {a.palette.slice(0, 4).map((c) => <span key={c} className="h-4 w-4 rounded-full ring-1 ring-bark-800/10" style={{ backgroundColor: c }} />)}
+              <span className="flex gap-1">
+                {a.palette.slice(0, 4).map((c) => (
+                  <span key={c} className="h-4 w-4 rounded-full ring-1 ring-ink/10" style={{ backgroundColor: c }} />
+                ))}
               </span>
             )}
           </button>
         ))}
       </div>
       {step > 0 && (
-        <button type="button" onClick={() => setPicked((p) => p.slice(0, -1))} className="mt-6 text-sm text-bark-500 hover:text-bark-900">
-          ← Question précédente
+        <button type="button" onClick={() => setPicked((p) => p.slice(0, -1))} className="mt-6 text-sm text-ink-2 underline-offset-4 hover:underline">
+          Question précédente
         </button>
       )}
     </div>

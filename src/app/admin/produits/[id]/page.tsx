@@ -21,10 +21,10 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
 
   return (
     <div>
-      <Link href="/admin/produits" className="text-sm text-bark-500 hover:text-bark-900">← Produits</Link>
+      <Link href="/admin/produits" className="text-sm text-ink-3 hover:text-ink">← Produits</Link>
       <div className="mt-2 flex flex-wrap items-center justify-between gap-4">
-        <h1 className="font-display text-4xl font-semibold text-bark-900">{product.name}</h1>
-        <Link href={product.isCustomizable ? "/configurateur" : `/boutique/${product.slug}`} className="text-sm font-semibold text-terracotta-600 hover:underline">
+        <h1 className="text-3xl font-medium tracking-tight text-ink">{product.name}</h1>
+        <Link href={product.isCustomizable ? "/configurateur" : `/boutique/${product.slug}`} className="text-sm font-semibold text-accent-strong hover:underline">
           Voir sur le site →
         </Link>
       </div>
@@ -49,7 +49,7 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
           }}
         />
       </div>
-      <form action={deleteProduct} className="mt-10 rounded-3xl border border-red-200 bg-red-50/60 p-6">
+      <form action={deleteProduct} className="mt-10 rounded-md border border-red-200 bg-red-50/60 p-6">
         <input type="hidden" name="id" value={product.id} />
         <p className="text-sm text-red-800">Supprimer définitivement ce produit. Les commandes passées gardent leur instantané.</p>
         <SubmitButton variant="secondary" pendingText="Suppression…" className="mt-3 border-red-300 text-red-700 hover:border-red-500">

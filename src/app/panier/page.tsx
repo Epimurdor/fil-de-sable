@@ -37,7 +37,12 @@ function CartRow({ item }: { item: CartItemWithProduct }) {
           <div>
             <p className="font-display text-lg font-semibold text-bark-900">
               {item.product.name}
-              {custom && <span className="ml-2 rounded-full bg-ocre-100 px-2 py-0.5 text-xs font-semibold text-terracotta-700">sur mesure</span>}
+              {custom && (
+                <>
+                  {" "}
+                  <span className="ml-1 rounded-full bg-ocre-100 px-2 py-0.5 text-xs font-semibold text-terracotta-700">sur mesure</span>
+                </>
+              )}
             </p>
             <ul className="mt-1 text-sm text-bark-500">
               {details.map((d) => (

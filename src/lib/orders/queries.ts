@@ -1,5 +1,6 @@
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
+import { requireAdmin } from "@/lib/auth/session";
 
 export const orderInclude = {
   items: { include: { product: { select: { slug: true, imageUrl: true, options: true } } } },
@@ -26,7 +27,9 @@ export async function getOrderForPayment(id: string, userId: string) {
   return prisma.order.findFirst({ where: { id, userId }, include: { items: true } });
 }
 
+// Lectures admin : le rôle est revérifié ici, quel que soit l'appelant (défense en profondeur).
 export async function getAdminOrders(status?: string) {
+  await requireAdmin();
   return prisma.order.findMany({
     where: status ? { status } : undefined,
     orderBy: { createdAt: "desc" },
@@ -35,6 +38,7 @@ export async function getAdminOrders(status?: string) {
 }
 
 export async function getAdminOrder(id: string) {
+  await requireAdmin();
   return prisma.order.findUnique({
     where: { id },
     include: { ...orderInclude, user: { select: userSelect } },
@@ -42,6 +46,7 @@ export async function getAdminOrder(id: string) {
 }
 
 export async function getAdminStats() {
+  await requireAdmin();
   const [pending, inProgress, toShip, customers, products] = await Promise.all([
     prisma.order.count({ where: { status: "paid" } }),
     prisma.order.count({ where: { status: "in_progress" } }),

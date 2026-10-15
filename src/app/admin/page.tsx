@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { requireAdmin } from "@/lib/auth/session";
 import Link from "next/link";
 import { StatusBadge } from "@/components/status-badge";
 import { formatDateTime, formatPrice } from "@/lib/format";
@@ -7,6 +8,9 @@ import { getAdminOrders, getAdminStats } from "@/lib/orders/queries";
 export const metadata: Metadata = { title: "Administration" };
 
 export default async function AdminHome() {
+  // Contrôle ici et pas seulement dans admin/layout.tsx : avec le rendu en flux (loading.tsx),
+  // la page se rend en parallèle du layout et serait envoyée avant sa redirection.
+  await requireAdmin();
   const [stats, orders] = await Promise.all([getAdminStats(), getAdminOrders()]);
   const recent = orders.slice(0, 8);
 

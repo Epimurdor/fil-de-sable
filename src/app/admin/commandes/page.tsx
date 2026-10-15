@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { requireAdmin } from "@/lib/auth/session";
 import Link from "next/link";
 import { StatusBadge } from "@/components/status-badge";
 import { cn } from "@/lib/cn";
@@ -9,6 +10,9 @@ import { ORDER_STATUSES, STATUS_INFO, isOrderStatus } from "@/lib/orders/status"
 export const metadata: Metadata = { title: "Commandes" };
 
 export default async function AdminOrdersPage({ searchParams }: { searchParams: Promise<{ statut?: string }> }) {
+  // Contrôle ici et pas seulement dans admin/layout.tsx : avec le rendu en flux (loading.tsx),
+  // la page se rend en parallèle du layout et serait envoyée avant sa redirection.
+  await requireAdmin();
   const { statut } = await searchParams;
   const filter = statut && isOrderStatus(statut) ? statut : undefined;
   const orders = await getAdminOrders(filter);

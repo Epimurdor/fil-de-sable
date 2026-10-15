@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { requireAdmin } from "@/lib/auth/session";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ProductForm } from "@/components/admin/product-form";
@@ -12,6 +13,9 @@ import { parseColors } from "@/lib/types";
 export const metadata: Metadata = { title: "Modifier le produit" };
 
 export default async function EditProductPage({ params }: { params: Promise<{ id: string }> }) {
+  // Contrôle ici et pas seulement dans admin/layout.tsx : avec le rendu en flux (loading.tsx),
+  // la page se rend en parallèle du layout et serait envoyée avant sa redirection.
+  await requireAdmin();
   const { id } = await params;
   const [product, categories] = await Promise.all([
     prisma.product.findUnique({ where: { id }, include: { options: { orderBy: { sortOrder: "asc" } } } }),

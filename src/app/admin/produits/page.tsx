@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { requireAdmin } from "@/lib/auth/session";
 import Link from "next/link";
 import { ProductVisual } from "@/components/product-visual";
 import { ButtonLink } from "@/components/ui/button";
@@ -9,6 +10,9 @@ import { kindFromCategorySlug, parseColors } from "@/lib/types";
 export const metadata: Metadata = { title: "Produits" };
 
 export default async function AdminProductsPage() {
+  // Contrôle ici et pas seulement dans admin/layout.tsx : avec le rendu en flux (loading.tsx),
+  // la page se rend en parallèle du layout et serait envoyée avant sa redirection.
+  await requireAdmin();
   const products = await prisma.product.findMany({
     include: { category: true, _count: { select: { options: true } } },
     orderBy: [{ category: { sortOrder: "asc" } }, { sortOrder: "asc" }],

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { requireAdmin } from "@/lib/auth/session";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { OrderStatusForm } from "@/components/admin/order-status-form";
@@ -13,6 +14,9 @@ import { parseCustomConfig, parseSelectedOptions } from "@/lib/types";
 export const metadata: Metadata = { title: "Commande" };
 
 export default async function AdminOrderPage({ params }: { params: Promise<{ id: string }> }) {
+  // Contrôle ici et pas seulement dans admin/layout.tsx : avec le rendu en flux (loading.tsx),
+  // la page se rend en parallèle du layout et serait envoyée avant sa redirection.
+  await requireAdmin();
   const { id } = await params;
   const order = await getAdminOrder(id);
   if (!order) notFound();

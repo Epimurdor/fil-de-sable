@@ -36,6 +36,26 @@ export default function AtelierPage() {
             </p>
             <p>Un nœud un peu plus serré ici, une boucle un peu plus ronde là. C'est la signature, pas un défaut.</p>
           </div>
+          <section className="mt-10 border-t border-line pt-8">
+            <h2 className="text-xl font-medium tracking-tight text-ink">Qui je suis</h2>
+            <div className="mt-4 space-y-4 text-ink-2">
+              <p>
+                Je m'appelle Nathalie, j'ai 55 ans. Depuis mes 16 ans, je suis assistante dentaire : près de quarante ans à
+                travailler avec mes mains, au fauteuil, au plus près des patients.
+              </p>
+              <p>
+                Ce métier m'a appris l'essentiel : la précision du geste, la propreté du poste de travail, l'organisation pour
+                que rien ne manque au bon moment, et le contact avec les gens, savoir rassurer, écouter et expliquer
+                simplement.
+              </p>
+              <p>
+                Le micro-macramé, je l'ai appris seule, en autodidacte, nœud après nœud. Je retrouve à l'établi les mêmes
+                exigences : des nœuds réguliers, un plan de travail net, des fils et des perles bien rangés. Et comme au
+                cabinet, je tiens à rester proche de mes clients : je réponds à chaque message, je conseille sur les
+                couleurs et les tailles, et je suis ta commande jusqu'à ta boîte aux lettres.
+              </p>
+            </div>
+          </section>
           <div className="mt-8 flex flex-wrap gap-3">
             <ButtonLink href="/boutique">Voir la boutique</ButtonLink>
             <ButtonLink href="/configurateur" variant="secondary">Composer un bracelet</ButtonLink>

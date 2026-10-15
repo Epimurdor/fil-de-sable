@@ -31,11 +31,12 @@ _(bugs remontés mais pas encore traités)_
 -->
 
 ### 2026-10-15 — Classe CSS collée sur les liens de l'en-tête
-- **Statut :** ✅
+- **Statut :** 🚀
 - **Problème :** les liens de navigation de l'en-tête avaient la classe `shrink-0whitespace-nowrap` (espace manquant), introduite avec l'ajout de `vine` : ni `shrink-0` ni `whitespace-nowrap` ne s'appliquaient, les liens pouvaient se couper sur mobile.
 - **Correctif :** espace rétabli (`vine shrink-0 whitespace-nowrap`).
 - **Fichiers :** `src/components/site-header.tsx`
-- **Vérification :** contrôles du script de déploiement (typecheck, lint, build).
+- **Vérification :** typecheck OK · lint OK · build OK · en prod, la classe collée n'apparaît plus dans le HTML.
+- **Notes :** déployé le 2026-10-15 (`13f6e87`), avec le bracelet de macramé au survol (`vine-weave.tsx`, travail d'une autre conversation).
 
 ### 2026-10-15 — Déploiement : contrôles des pages protégées et des fichiers statiques
 - **Statut :** ✅
@@ -71,20 +72,20 @@ _(bugs remontés mais pas encore traités)_
 - **Notes :** déployé le 2026-10-15 (`5435d47`, après un premier essai incomplet `aa02500`).
 
 ### 2026-10-15 — Lien Facebook à la place d'Instagram
-- **Statut :** ✅
+- **Statut :** 🚀
 - **Problème :** le pied de page et la page L'atelier renvoyaient vers Instagram (`instagram.com/fildesable`).
 - **Correctif :** remplacé par un lien « Facebook » vers https://www.facebook.com/schweitzer.nathalie.9 ; le réglage `instagram` de la config devient `facebook` (URL complète).
 - **Fichiers :** `src/config/site.ts`, `src/components/site-footer.tsx`, `src/app/atelier/page.tsx`
-- **Vérification :** typecheck OK · `/` et `/atelier` chargées en local (port 3001) : lien Facebook présent, plus aucune mention d'Instagram.
-- **Notes :** local uniquement, pas encore déployé.
+- **Vérification :** typecheck OK · `/` et `/atelier` chargées en local (port 3001) puis en prod : lien Facebook présent, plus aucune mention d'Instagram.
+- **Notes :** déployé le 2026-10-15 (`13f6e87`).
 
 ### 2026-10-15 — Mention « Fait main en Alsace par Nathalie » en pied de page
-- **Statut :** ✅
+- **Statut :** 🚀
 - **Problème :** le bas de page affichait « © 2026 Fil de Sable. Fait main en France. »
 - **Correctif :** texte remplacé par « © 2026 Fil de Sable. Fait main en Alsace par Nathalie » (l'année reste calculée automatiquement).
 - **Fichiers :** `src/components/site-footer.tsx`
-- **Vérification :** page d'accueil chargée sur le serveur de dev local (port 3001), nouveau texte présent dans le HTML.
-- **Notes :** local uniquement, pas encore déployé.
+- **Vérification :** nouveau texte présent dans le HTML, en local (port 3001) puis en prod.
+- **Notes :** déployé le 2026-10-15 (`13f6e87`).
 
 ### 2026-10-15 — Skill de remplissage automatique du suivi
 - **Statut :** ✅

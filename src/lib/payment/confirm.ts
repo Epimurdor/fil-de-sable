@@ -1,3 +1,4 @@
+import "server-only";
 import { prisma } from "@/lib/db";
 
 // Passage atomique « pending » -> « paid » : idempotent (un webhook rejoué ne fait rien la seconde fois).

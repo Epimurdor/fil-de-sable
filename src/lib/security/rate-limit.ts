@@ -1,3 +1,4 @@
+import "server-only";
 import { headers } from "next/headers";
 
 // Limiteur de débit en mémoire (fenêtre glissante). Suffisant pour une instance unique ;

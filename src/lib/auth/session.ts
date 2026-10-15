@@ -1,11 +1,14 @@
+import "server-only";
 import { cache } from "react";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { randomBytes } from "node:crypto";
+import { createHash, randomBytes } from "node:crypto";
 import { prisma } from "@/lib/db";
+import { SESSION_COOKIE, clearCookie, cookieBaseOptions } from "@/lib/security/cookies";
 
-const COOKIE_NAME = "fds_session";
 const SESSION_DAYS = 30;
+// Un jeton émis par createSession fait 43 caractères : au-delà, c'est forcément une valeur forgée.
+const MAX_TOKEN_LENGTH = 128;
 
 export type SessionUser = {
   id: string;
@@ -16,6 +19,12 @@ export type SessionUser = {
 };
 
 const userSelect = { id: true, email: true, firstName: true, lastName: true, role: true } as const;
+
+// Le cookie porte le jeton brut ; la base n'en garde que l'empreinte SHA-256. Une lecture de la
+// table Session (sauvegarde, accès à l'hébergeur, injection) ne permet donc pas de rejouer une session.
+function hashToken(token: string): string {
+  return createHash("sha256").update(token).digest("hex");
+}
 
 // Assainit les URLs de redirection post-authentification contre les attaques par redirection ouverte (Open Redirect).
 export function sanitizeNextUrl(raw: unknown, defaultUrl = "/compte"): string {
@@ -45,32 +54,30 @@ export async function createSession(userId: string): Promise<void> {
 
   const store = await cookies();
   // Rotation : le jeton précédent de ce navigateur (autre compte, session fixée…) est révoqué.
-  const previousToken = store.get(COOKIE_NAME)?.value;
-  if (previousToken) await prisma.session.deleteMany({ where: { token: previousToken } }).catch(() => {});
+  const previousToken = store.get(SESSION_COOKIE)?.value;
+  if (previousToken && previousToken.length <= MAX_TOKEN_LENGTH) {
+    await prisma.session.deleteMany({ where: { token: hashToken(previousToken) } }).catch(() => {});
+  }
 
-  await prisma.session.create({ data: { token, userId, expiresAt } });
-  store.set(COOKIE_NAME, token, {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    expires: expiresAt,
-  });
+  await prisma.session.create({ data: { token: hashToken(token), userId, expiresAt } });
+  store.set(SESSION_COOKIE, token, { ...cookieBaseOptions, expires: expiresAt });
 }
 
 export async function destroySession(): Promise<void> {
   const store = await cookies();
-  const token = store.get(COOKIE_NAME)?.value;
-  if (token) await prisma.session.deleteMany({ where: { token } }).catch(() => {});
-  store.delete(COOKIE_NAME);
+  const token = store.get(SESSION_COOKIE)?.value;
+  if (token && token.length <= MAX_TOKEN_LENGTH) {
+    await prisma.session.deleteMany({ where: { token: hashToken(token) } }).catch(() => {});
+  }
+  await clearCookie(SESSION_COOKIE);
 }
 
 // Dédupliqué par requête : le header et la page partagent le même résultat.
 export const getCurrentUser = cache(async (): Promise<SessionUser | null> => {
-  const token = (await cookies()).get(COOKIE_NAME)?.value;
-  if (!token) return null;
+  const token = (await cookies()).get(SESSION_COOKIE)?.value;
+  if (!token || token.length > MAX_TOKEN_LENGTH) return null;
   const session = await prisma.session.findUnique({
-    where: { token },
+    where: { token: hashToken(token) },
     include: { user: { select: userSelect } },
   });
   if (!session) return null;
@@ -93,4 +100,3 @@ export async function requireAdmin(): Promise<SessionUser> {
   if (user.role !== "admin") redirect("/compte");
   return user;
 }
-

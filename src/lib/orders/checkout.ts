@@ -1,3 +1,4 @@
+import "server-only";
 import { randomInt } from "node:crypto";
 import { z } from "zod";
 import type { ShippingMethod } from "@prisma/client";

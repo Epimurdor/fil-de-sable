@@ -1,12 +1,13 @@
 "use server";
 
 import { z } from "zod";
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { DUMMY_HASH, hashPassword, verifyPassword } from "./password";
+import { WEAK_PASSWORD_MESSAGE, isWeakPassword } from "./password-policy";
 import { createSession, destroySession, sanitizeNextUrl } from "./session";
 import { attachCartToUser } from "@/lib/cart/cart";
+import { CART_COOKIE, clearCookie } from "@/lib/security/cookies";
 import {
   clearRateLimit,
   consumeRateLimit,
@@ -56,6 +57,8 @@ export async function register(_prev: AuthState, formData: FormData): Promise<Au
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Formulaire invalide." };
 
   const { email, password, firstName, lastName } = parsed.data;
+  if (isWeakPassword(password, email)) return { error: WEAK_PASSWORD_MESSAGE };
+
   const existing = await prisma.user.findUnique({ where: { email }, select: { id: true } });
   if (existing) return { error: "Un compte existe déjà avec cette adresse." };
 
@@ -97,8 +100,7 @@ export async function login(_prev: AuthState, formData: FormData): Promise<AuthS
 
 export async function logout(): Promise<void> {
   await destroySession();
-  const store = await cookies();
-  store.delete("fds_cart");
+  await clearCookie(CART_COOKIE);
   redirect("/");
 }
 

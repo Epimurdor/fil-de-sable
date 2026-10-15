@@ -1,5 +1,6 @@
 // Abstraction du paiement : la commande est créée en base, puis le fournisseur
 // renvoie une URL où envoyer le client. En dev : "mock". En production : Stripe Checkout.
+import "server-only";
 import { mockProvider } from "./mock";
 import { stripeProvider } from "./stripe";
 

@@ -3,6 +3,14 @@ import { PrismaPg } from "@prisma/adapter-pg";
 
 type PoolConfig = ConstructorParameters<typeof PrismaPg>[0];
 
+// TLS vers la base. Par défaut (base managée Wasmer, certificat d'une autorité privée) : chiffré mais
+// sans vérification de la chaîne. Si l'hébergeur fournit son certificat racine, le passer dans
+// DB_SSL_CA (PEM, sauts de ligne réels ou « \n ») rétablit la vérification complète du serveur.
+function sslConfig(): { ca: string; rejectUnauthorized: true } | { rejectUnauthorized: false } {
+  const ca = process.env.DB_SSL_CA?.trim().replace(/\\n/g, "\n");
+  return ca ? { ca, rejectUnauthorized: true } : { rejectUnauthorized: false };
+}
+
 // Wasmer Edge n'injecte pas DATABASE_URL mais DB_HOST, DB_PORT, DB_NAME, DB_USERNAME, DB_PASSWORD.
 // Ailleurs (dev local, migrations depuis un poste) : DATABASE_URL classique.
 function poolConfig(): PoolConfig {
@@ -14,8 +22,8 @@ function poolConfig(): PoolConfig {
       database: DB_NAME,
       user: DB_USERNAME,
       password: DB_PASSWORD,
-      // TLS obligatoire chez Wasmer, certificat émis par une autorité privée : chaîne non vérifiable.
-      ssl: { rejectUnauthorized: false },
+      // TLS obligatoire chez Wasmer (voir sslConfig).
+      ssl: sslConfig(),
       max: 5,
     };
   }
@@ -27,7 +35,7 @@ function poolConfig(): PoolConfig {
   // Le pilote pg l'interpréterait comme verify-full, ce qui échoue avec la base Wasmer.
   if (url.searchParams.get("sslmode") === "require") {
     url.searchParams.delete("sslmode");
-    return { connectionString: url.toString(), ssl: { rejectUnauthorized: false }, max: 5 };
+    return { connectionString: url.toString(), ssl: sslConfig(), max: 5 };
   }
   return { connectionString: raw, max: 5 };
 }

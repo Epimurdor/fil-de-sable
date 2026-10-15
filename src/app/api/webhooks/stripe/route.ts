@@ -4,6 +4,9 @@ import { prisma } from "@/lib/db";
 import { markOrderPaid } from "@/lib/payment/confirm";
 import { getStripe } from "@/lib/payment/stripe";
 
+// Un événement Stripe pèse quelques Ko : au-delà, ce n'est pas Stripe.
+const MAX_BODY_BYTES = 512 * 1024;
+
 // Seul canal qui fait passer une commande Stripe en « payée » : la redirection success_url
 // du navigateur n'est jamais une preuve de paiement.
 export async function POST(request: Request): Promise<Response> {
@@ -12,8 +15,8 @@ export async function POST(request: Request): Promise<Response> {
   if (!secret || !signature) return new Response("Webhook non configuré ou non signé.", { status: 400 });
 
   // Corps brut indispensable : la signature HMAC porte sur les octets exacts envoyés par Stripe.
-  const body = await request.text();
-  if (body.length > 512 * 1024) return new Response("Corps trop volumineux.", { status: 413 });
+  const body = await readBodyLimited(request, MAX_BODY_BYTES);
+  if (body === null) return new Response("Corps trop volumineux.", { status: 413 });
 
   let event: Stripe.Event;
   try {
@@ -34,6 +37,37 @@ export async function POST(request: Request): Promise<Response> {
       break;
   }
   return Response.json({ received: true });
+}
+
+// Lit le corps sans jamais garder en mémoire plus de `max` octets : Content-Length est contrôlé
+// d'abord, puis le flux lui-même (un envoi par morceaux n'annonce pas sa taille). Renvoie null
+// si la limite est dépassée. Décodage UTF-8 identique à request.text().
+async function readBodyLimited(request: Request, max: number): Promise<string | null> {
+  const declared = Number(request.headers.get("content-length"));
+  if (declared > max) return null;
+  if (!request.body) return "";
+
+  const reader = request.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let received = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    received += value.byteLength;
+    if (received > max) {
+      await reader.cancel().catch(() => {});
+      return null;
+    }
+    chunks.push(value);
+  }
+
+  const bytes = new Uint8Array(received);
+  let offset = 0;
+  for (const chunk of chunks) {
+    bytes.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return new TextDecoder().decode(bytes);
 }
 
 async function handlePaidSession(session: Stripe.Checkout.Session) {

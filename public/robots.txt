@@ -1,0 +1,9 @@
+User-agent: *
+Disallow: /admin
+Disallow: /compte
+Disallow: /panier
+Disallow: /commande
+Disallow: /paiement
+Disallow: /connexion
+Disallow: /inscription
+Disallow: /api

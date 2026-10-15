@@ -1,10 +1,11 @@
+import "server-only";
 import { cache } from "react";
 import { cookies } from "next/headers";
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth/session";
+import { CART_COOKIE, clearCookie, cookieBaseOptions } from "@/lib/security/cookies";
 
-const CART_COOKIE = "fds_cart";
 const CART_DAYS = 90;
 
 export const cartInclude = {
@@ -22,13 +23,7 @@ export async function getCartId(): Promise<string | null> {
 }
 
 async function setCartCookie(id: string): Promise<void> {
-  (await cookies()).set(CART_COOKIE, id, {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    maxAge: CART_DAYS * 24 * 60 * 60,
-  });
+  (await cookies()).set(CART_COOKIE, id, { ...cookieBaseOptions, maxAge: CART_DAYS * 24 * 60 * 60 });
 }
 
 // Un panier rattaché à un compte n'est utilisable que par ce compte : un cookie forgé, fixé
@@ -152,7 +147,7 @@ export async function attachCartToUser(userId: string): Promise<void> {
     await setCartCookie(userExistingCart.id);
   } else if (cookieCartId) {
     // Cookie vers un panier inexistant ou appartenant à un autre compte.
-    (await cookies()).delete(CART_COOKIE);
+    await clearCookie(CART_COOKIE);
   }
 }
 

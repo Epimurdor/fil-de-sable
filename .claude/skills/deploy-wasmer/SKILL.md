@@ -62,6 +62,10 @@ de ces points a corrigé une erreur 500 :
 | Tailwind via `@tailwindcss/postcss` | nécessaire pour que webpack traite le CSS |
 | `outputFileTracingIncludes` sur `node_modules/.prisma/client/**` | Prisma lit `query_compiler_bg.wasm` sur le disque, invisible pour le traçage |
 | pas de `health_checks` dans `app.yaml` | la CLI 7.5 rejette la syntaxe documentée |
+| chunks numériques préfixés `c-` (`webpack()` dans `next.config.ts`) + `scripts/check-static-paths.mjs` dans `build` | next-bundle applique les routes `/500` et `/404/?` sans ancrage : un fichier dont l'URL contient `/500` ou `/404` (ex. `chunks/500-<hash>.js`) est servi en erreur et casse la navigation entre pages. Le build échoue si un tel chemin réapparaît (fichier de `public/` compris) |
+
+Symptôme typique de ce dernier point : l'accueil s'affiche mais aucun lien ne mène nulle part, avec
+`ChunkLoadError` dans la console du navigateur.
 
 Si une nouvelle dépendance lit des fichiers à l'exécution (wasm, json, polices...), ajoute-les à
 `outputFileTracingIncludes` dans `next.config.ts`.

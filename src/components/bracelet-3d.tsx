@@ -29,6 +29,15 @@ const BEAD_LUM_LO = 0.12;
 const BEAD_LUM_HI = 0.35;
 const THREAD_LUM_REF = 0.02;
 
+// Étalonnage du fil : facteur appliqué à la couleur (espace linéaire) pour que le fil, une fois éclairé,
+// ressorte en moyenne au HEX de la bobine. Mesuré avec ?debug3d (__bracelet.measure() : couleur médiane
+// du fil à l'écran) sur plusieurs bobines ; à refaire si l'éclairage ou les modèles changent.
+const THREAD_GAIN = { plain: 0.74, textured: 1.15 };
+
+function threadColor(hex: string, gain: number) {
+  return new THREE.Color(hex).multiplyScalar(gain);
+}
+
 function threadSheen(hex: string) {
   return new THREE.Color(hex).lerp(new THREE.Color("#ffffff"), 0.25);
 }
@@ -52,9 +61,9 @@ export function Bracelet3D({ modelUrl, threadHex, metal, className, label }: Pro
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    // Tone mapping « Neutral » (Khronos) : garde la teinte des fils fidèle aux pastilles de couleur.
-    renderer.toneMapping = THREE.NeutralToneMapping;
-    renderer.toneMappingExposure = 0.9;
+    // Pas de tone mapping : le « Neutral » assombrissait les tons foncés et compressait les clairs, ce qui
+    // faussait la teinte des fils. La couleur est étalonnée par THREAD_GAIN.
+    renderer.toneMapping = THREE.NoToneMapping;
     renderer.domElement.style.touchAction = "none";
     renderer.domElement.style.display = "block";
     mount.appendChild(renderer.domElement);
@@ -109,11 +118,13 @@ export function Bracelet3D({ modelUrl, threadHex, metal, className, label }: Pro
     // perles redessinées en sphères métal à partir des extras.
     function setupThreadOnly(gltf: GLTF) {
       const thread = new THREE.MeshPhysicalMaterial({
-        color: new THREE.Color(initial.current.threadHex),
+        color: threadColor(initial.current.threadHex, THREAD_GAIN.plain),
         roughness: 0.78,
-        sheen: 0.35,
+        // Reflets discrets : sinon le blanc du reflet délave les fils foncés (fil ciré mat).
+        specularIntensity: 0.4,
+        sheen: 0.2,
         sheenRoughness: 0.7,
-        sheenColor: threadSheen(initial.current.threadHex),
+        sheenColor: threadSheen(initial.current.threadHex).multiplyScalar(THREAD_GAIN.plain),
       });
       gltf.scene.traverse((o) => {
         if (o instanceof THREE.Mesh) {
@@ -136,8 +147,8 @@ export function Bracelet3D({ modelUrl, threadHex, metal, className, label }: Pro
         root.add(mesh);
       }
       setThread.current = (hex) => {
-        thread.color.set(hex);
-        thread.sheenColor.copy(threadSheen(hex));
+        thread.color.copy(threadColor(hex, THREAD_GAIN.plain));
+        thread.sheenColor.copy(threadSheen(hex).multiplyScalar(THREAD_GAIN.plain));
       };
       setMetal.current = (m) => {
         metalMaterial.color.set(METAL_COLORS[m]);
@@ -149,7 +160,7 @@ export function Bracelet3D({ modelUrl, threadHex, metal, className, label }: Pro
     // les texels clairs (perles) deviennent du métal or ou argent.
     function setupTextured(sceneRoot: THREE.Object3D) {
       const uniforms = {
-        uThread: { value: new THREE.Color(initial.current.threadHex) },
+        uThread: { value: threadColor(initial.current.threadHex, THREAD_GAIN.textured) },
         uMetal: { value: new THREE.Color(METAL_COLORS[initial.current.metal]) },
       };
       sceneRoot.traverse((o) => {
@@ -182,7 +193,7 @@ export function Bracelet3D({ modelUrl, threadHex, metal, className, label }: Pro
         mat.needsUpdate = true;
       });
       setThread.current = (hex) => {
-        uniforms.uThread.value.set(hex);
+        uniforms.uThread.value.copy(threadColor(hex, THREAD_GAIN.textured));
       };
       setMetal.current = (m) => {
         uniforms.uMetal.value.set(METAL_COLORS[m]);
@@ -210,7 +221,28 @@ export function Bracelet3D({ modelUrl, threadHex, metal, className, label }: Pro
         root.add(gltf.scene);
         if (debug) {
           controls.autoRotate = false;
-          Object.assign(window, { __bracelet: { camera, controls, root } });
+          // measure() : couleur médiane du fil à l'écran (perles masquées), pour la comparer au HEX.
+          // skipGrey : ignore les pixels quasi gris (perles métal du modèle texturé, qui ne se masquent pas).
+          const measure = (skipGrey = false) => {
+            const beads = root.children.filter((o) => o !== gltf.scene);
+            beads.forEach((o) => (o.visible = false));
+            renderer.render(scene, camera);
+            const gl = renderer.getContext();
+            const { width, height } = gl.canvas;
+            const px = new Uint8Array(width * height * 4);
+            gl.readPixels(0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, px);
+            beads.forEach((o) => (o.visible = true));
+            const ch: number[][] = [[], [], []];
+            for (let i = 0; i < width * height; i++) {
+              if (px[i * 4 + 3] < 250) continue;
+              if (skipGrey && Math.max(px[i * 4], px[i * 4 + 1], px[i * 4 + 2]) - Math.min(px[i * 4], px[i * 4 + 1], px[i * 4 + 2]) < 18) continue;
+              for (let c = 0; c < 3; c++) ch[c].push(px[i * 4 + c]);
+            }
+            const med = ch.map((a) => a.sort((x, y) => x - y)[a.length >> 1] ?? 0);
+            return "#" + med.map((v) => v.toString(16).padStart(2, "0")).join("").toUpperCase();
+          };
+          // gain / setThread : réglage de THREAD_GAIN en direct, avant de reporter la valeur dans le code.
+          Object.assign(window, { __bracelet: { camera, controls, root, measure, gain: THREAD_GAIN, setThread: (hex: string) => setThread.current(hex) } });
         }
         setLoaded({ url: modelUrl, ok: true });
         loop();

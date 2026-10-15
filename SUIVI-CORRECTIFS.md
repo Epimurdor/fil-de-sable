@@ -1,9 +1,9 @@
-# Suivi des correctifs et bugfix — Fil de Sable
+# Suivi des correctifs et bugfix — Fil du Sable
 
 Journal de tous les petits correctifs et bugfix faits dans la conversation dédiée.
 Le plus récent en haut. Chaque entrée : date, problème, cause, correctif, fichiers touchés, vérification, statut de déploiement.
 
-**Légende des statuts :** 🟡 en cours · ✅ corrigé (local) · 🚀 déployé sur fil-de-sable.wasmer.app · ⏸️ en attente / bloqué
+**Légende des statuts :** 🟡 en cours · ✅ corrigé (local) · 🚀 déployé en ligne (Render) · ⏸️ en attente / bloqué
 
 ---
 
@@ -11,10 +11,7 @@ Le plus récent en haut. Chaque entrée : date, problème, cause, correctif, fic
 
 _(bugs remontés mais pas encore traités)_
 
-- [2026-10-15] En ligne (Wasmer), la Server Action « Ajouter au panier » met ~45 s et son `POST` répond 500 avant que le navigateur recharge `/panier` (l'article est bien ajouté) ; constaté aussi avec la version précédente sans middleware (v13), donc sans rapport avec la CSP. À diagnostiquer avec `debug.ps1` (runtime Edge.js) : rendu de `/panier` dans la réponse de l'action ?
 - [2026-10-15] `/configurateur` reste sur « On noue la page… » en production : erreur `WebAssembly.Module compilation failed` (digest 345036456) au rendu, déjà présente sur 8d6cf66 (avant 309b66f). Cause non identifiée ; seul appel à la base de cette page : `getCustomizableProduct`. L'écran de chargement masque l'erreur.
-- [2026-10-15] `/.well-known/security.txt` répond 404 en production : le paquet Wasmer ne contient pas le dossier `.well-known` et le routage l'exclut de l'application ; le fichier fonctionne en local avec `next start`. Piste : réécriture vers un chemin sans point.
-
 ---
 
 ## Journal
@@ -31,6 +28,24 @@ _(bugs remontés mais pas encore traités)_
 - **Notes :** points d'attention, suites éventuelles
 
 -->
+
+### 2026-10-15 — Aperçu 3D : couleur du fil étalonnée sur le HEX
+- **Statut :** ✅
+- **Problème :** en 3D, la couleur du fil ne respectait pas le HEX de la bobine : Arabesques sortait ~10 % trop clair et saturé, Vagues ~40 % trop sombre avec des tons foncés sursaturés (n° 87 rendu `#1B522F` pour `#2F613F`).
+- **Cause :** le tone mapping « Neutral » de la scène assombrissait les tons foncés et compressait les clairs, et rien n'étalonnait la couleur par rapport à l'éclairage ; sur Arabesques, le reflet blanc (spéculaire + sheen) délavait les fils foncés.
+- **Correctif :** tone mapping retiré ; facteur d'étalonnage par modèle (`THREAD_GAIN` : 0,74 fil uni, 1,15 modèle texturé) appliqué à la couleur du fil (et au sheen) ; reflets plus discrets sur le fil uni (`specularIntensity` 0,4, `sheen` 0,2). Outil de mesure en mode `?debug3d` : `__bracelet.measure(skipGrey)` donne la couleur médiane du fil à l'écran, `__bracelet.gain` permet de régler l'étalonnage en direct.
+- **Fichiers :** `src/components/bracelet-3d.tsx`
+- **Vérification :** typecheck OK · lint OK · mesures dans le navigateur (6 bobines : 35, 224, 87, Branco, 04, 65), rapport rendu / HEX en linéaire : Arabesques médiane 1,00 (0,96 à 1,13, ex. n° 35 `#CC6A43` pour `#CE673B`) ; Vagues médiane 0,99 hors perles (ex. n° 224 `#67A69D` pour `#63A89E`). Avant : Arabesques ×1,39 sans tone mapping, Vagues ×0,6.
+- **Notes :** non commité. Pas de capture (panneau navigateur masqué). Sur Vagues, les perles font partie du même maillage que le fil : la mesure les écarte en ignorant les pixels gris, ce qui sous-estime un peu les fils très pâles (Branco). À refaire si l'éclairage ou les modèles 3D changent.
+
+### 2026-10-15 — Fil repeint sur la photo : couleur fidèle au HEX, sans effet flashy
+- **Statut :** ✅
+- **Problème :** en vue Photo, le fil repeint paraissait trop vif (« flashy ») et ne respectait pas le HEX de la bobine, alors qu'un fil ciré est plutôt doux.
+- **Cause :** le calcul multipliait la couleur du HEX par la luminance relative de chaque pixel (jusqu'à ×2,4) : la teinte moyenne restait proche du HEX, mais toutes les zones claires du fil devenaient plus saturées et plus vives que la bobine, écrêtées canal par canal.
+- **Correctif :** recoloration en OKLab (`src/lib/color.ts`, partagé par le navigateur et le script) : clarté = clarté du HEX + écart du pixel à la clarté médiane du fil d'origine ; teinte et saturation = celles du HEX, jamais dépassées (atténuées dans les ombres). Le pixel médian du fil sort exactement au HEX ; les reflets éclaircissent sans saturer. `refLum` / `contrast` du fil retirés de `PATTERN_PHOTOS` ; aperçus du script sur de vraies bobines avec pastille du HEX.
+- **Fichiers :** `src/lib/color.ts`, `src/components/photo-recolor.tsx`, `src/lib/configurator.ts`, `scripts/build-photo-masks.mjs`
+- **Vérification :** typecheck OK · lint OK · mesure de la couleur médiane du fil repeint contre le HEX (6 bobines × 2 photos) : écart OKLab 0,4 à 1,7 (imperceptible sous 2) · planche avant / après (n° 899, 35, 224) : rendu plus doux, proche de la pastille · photo affichée dans le configurateur (`npm run dev`). Mesure dans la page non faite (panneau navigateur masqué), calcul identique au script.
+- **Notes :** non commité. L'aperçu 3D, lui, éclaire la couleur du HEX avec ses lumières : il peut paraître plus vif que la photo, non modifié. Stock local : Branco, 04 et 65 cochés par l'utilisatrice ; 35, 224 et 87 ajoutés pour les tests et laissés en place.
 
 ### 2026-10-15 — Suppression des produits et commandes fictifs (base locale)
 - **Statut :** ✅
@@ -64,7 +79,7 @@ _(bugs remontés mais pas encore traités)_
 - **Correctif :** champ `Product.threadChoice` (migration `20261015150000_product_thread_choice`, vrai par défaut, y compris pour les articles existants). Fiche produit admin : case « Couleur du fil au choix », cochée par défaut pour un nouvel article. Fiche article : choix « Couleur du fil » en pastilles, alimenté en direct par les bobines cochées dans `/admin/fils` (rien à ressaisir quand le stock change ; masqué si aucune bobine en stock). Ajout au panier : bobine obligatoire dès qu'il y en a en stock, refusée si elle a été retirée entre-temps ; le libellé (« Vert foncé · ciré n° 87 ») est enregistré dans les options de la ligne et s'affiche dans le panier, la commande et l'admin. Enregistrer le stock rafraîchit tout le site.
 - **Fichiers :** `prisma/schema.prisma`, `prisma/migrations/20261015150000_product_thread_choice/migration.sql`, `src/lib/admin/actions.ts`, `src/components/admin/product-form.tsx`, `src/app/admin/produits/[id]/page.tsx`, `src/app/boutique/[slug]/page.tsx`, `src/components/add-to-cart-form.tsx`, `src/lib/cart/actions.ts`, `src/lib/threads/labels.ts`
 - **Vérification :** typecheck OK · lint OK · migration appliquée en local, schéma sans écart · navigateur : `/boutique/perle-d-ecume` propose les 4 bobines de test, choix du n° 87 → panier « Couleur du fil : Vert foncé · ciré n° 87 » ; bobine retirée du stock pendant que la page est ouverte → « Cette couleur de fil n'est plus disponible ». Case admin non testée dans le navigateur (pas de session admin), couverte par le typecheck. Stock de test remis à zéro.
-- **Notes :** commité et poussé sur GitHub (`73a652d`), pas encore déployé. Le serveur de dev doit être redémarré après une migration (client Prisma). La photo de l'article ne change pas encore de couleur (possible avec un masque comme pour le configurateur). Le prix ne dépend pas de la couleur. En prod : migrations à appliquer (`-Migrate`) puis cocher les bobines en ligne.
+- **Notes :** commité et poussé sur GitHub (`73a652d`), pas encore déployé. Le serveur de dev doit être redémarré après une migration (client Prisma). La photo de l'article ne change pas encore de couleur (possible avec un masque comme pour le configurateur). Le prix ne dépend pas de la couleur. En prod : migrations à appliquer sur Supabase (`PROD_MIGRATE_URL`) puis cocher les bobines en ligne.
 
 ### 2026-10-15 — Configurateur : aperçu « Photo » dont seul le fil change de couleur
 - **Statut :** ✅
@@ -77,7 +92,7 @@ _(bugs remontés mais pas encore traités)_
 ### 2026-10-15 — Aperçu 3D inaccessible en local : `npm run dev` ne démarrait plus
 - **Statut :** ✅
 - **Problème :** en local, le configurateur 3D n'était pas utilisable. `npm run dev` s'arrêtait au démarrage (« This build is using Turbopack, with a `webpack` config and no `turbopack` config »). De plus, depuis l'ajout du stock de fil, le configurateur est remplacé par « revient très vite » tant qu'aucune bobine n'est cochée.
-- **Cause :** Next 16.4.1 (version installée ; `package.json` indique 16.4.0) refuse de lancer Turbopack quand `next.config.ts` contient une fonction `webpack()` (préfixe `c-` des chunks pour Wasmer). Le build de prod utilisait déjà `--webpack`, pas le dev.
+- **Cause :** Next 16.4.1 (version installée ; `package.json` indique 16.4.0) refuse de lancer Turbopack quand `next.config.ts` contient une fonction `webpack()` (alors utilisée pour l'ancien hébergement). Le build de prod utilisait déjà `--webpack`, pas le dev.
 - **Correctif :** script `dev` → `prisma generate && next dev --webpack` (même compilateur qu'en prod).
 - **Fichiers :** `package.json`
 - **Vérification :** `npm run dev` démarre (« Next.js 16.4.1 (webpack) ») ; `/configurateur` : modèles Arabesques (`bracelet-perle-d-ecume.glb`) et Vagues (`quartz-rose/bracelet.gltf` + textures) chargés en 200, rendu 3D affiché.
@@ -89,7 +104,7 @@ _(bugs remontés mais pas encore traités)_
 - **Correctif :** nouvelle table `ThreadColor` avec les 333 coloris de `LINHASITA_COULEURS.md` (170 Encerado, 9 PE pailletés, 154 Bonderizado), insérés par la migration elle-même (générée par `scripts/import-linhasita.mjs`), tous « hors stock » au départ. Page admin **Stock de fil** (`/admin/fils`) : cases à cocher par gamme et famille, recherche par **code Linhasita** (`224`, plusieurs codes `224, 37, M19`, « 4 » trouve aussi « 04 ») ou par teinte / HEX, bouton « Cocher les N résultats », « Tout cocher » par famille, filtre « Seulement mes bobines », compteur et alerte de modifications non enregistrées. Le configurateur ne montre que les bobines en stock (teinte + référence, ex. « Turquoise · ciré n° 224 ») et affiche « Le configurateur revient très vite » s'il n'y en a aucune. À l'ajout au panier, le serveur refuse un fil retiré du stock entre-temps et enregistre la couleur et le libellé de la bobine depuis la base : panier, commande et admin indiquent quelle bobine utiliser. Les anciens paniers et commandes gardent leurs noms de couleurs.
 - **Fichiers :** `prisma/schema.prisma`, `prisma/migrations/20261015140000_thread_stock/migration.sql`, `scripts/import-linhasita.mjs`, `src/lib/threads/labels.ts`, `src/lib/threads/queries.ts`, `src/lib/admin/actions.ts`, `src/app/admin/fils/page.tsx`, `src/app/admin/layout.tsx`, `src/components/admin/thread-stock-form.tsx`, `src/lib/configurator.ts`, `src/lib/types.ts`, `src/lib/cart/actions.ts`, `src/components/configurator.tsx`, `src/app/configurateur/page.tsx`
 - **Vérification :** typecheck OK · lint OK · migration appliquée en local, schéma sans écart (`migrate diff` vide) · navigateur (dev local, admin de test temporaire supprimé ensuite) : recherche `224` → 2 bobines (ciré et polyamide), `218, 37 m19 4` → 7 bobines dans les 3 gammes, enregistrement puis rechargement conservent les cases, le configurateur affiche exactement les 8 bobines cochées ; 3 fils choisis → libellés et prix OK ; fil retiré du stock avant l'envoi → refusé avec message ; ajout au panier → « Fils : Beige · ciré Palha, Turquoise · ciré n° 224 » ; stock vide → message d'attente.
-- **Notes :** commité et poussé sur GitHub (`73a652d`), pas encore déployé. Stock local remis à zéro : à cocher dans `/admin/fils`. Au déploiement, la migration doit passer en prod (`deploy.ps1 -Migrate`), puis cocher les bobines **sur le site en ligne**, sinon le configurateur y affichera « revient très vite ». Ajoute une requête à `/configurateur`, page qui a déjà un souci en prod (voir « À faire »). Le contrôle du stock se fait à l'ajout au panier, pas au paiement. L'ancien `src/data/linhasita-colors.json` (autre conversation) n'est pas utilisé.
+- **Notes :** commité et poussé sur GitHub (`73a652d`), pas encore déployé. Stock local remis à zéro : à cocher dans `/admin/fils`. Au déploiement, la migration doit passer en prod (sur Supabase, avec `PROD_MIGRATE_URL`), puis cocher les bobines **sur le site en ligne**, sinon le configurateur y affichera « revient très vite ». Ajoute une requête à `/configurateur`, page qui a déjà un souci en prod (voir « À faire »). Le contrôle du stock se fait à l'ajout au panier, pas au paiement. L'ancien `src/data/linhasita-colors.json` (autre conversation) n'est pas utilisé.
 
 ### 2026-10-15 — Mention « fil de qualité premium, résistant à l'eau et à l'usure »
 - **Statut :** ✅
@@ -103,10 +118,10 @@ _(bugs remontés mais pas encore traités)_
 - **Statut :** 🚀
 - **Problème :** la CSP gardait `'unsafe-inline'` dans `script-src` (scripts d'hydratation de Next sans nonce) : un script inline injecté dans une page serait exécuté. Dernier point ouvert de l'audit (couche 3).
 - **Cause :** CSP statique dans `headers()` de `next.config.ts` : impossible d'y mettre un nonce différent à chaque requête.
-- **Correctif :** `src/middleware.ts` (guide Next « Content Security Policy ») tire un nonce de 128 bits par requête (WebCrypto), pose `script-src 'self' 'nonce-…' 'strict-dynamic'` (`'unsafe-eval'` en dev seulement, autres directives inchangées) et transmet le nonce par les en-têtes de requête `x-nonce` et `Content-Security-Policy` ; matcher excluant `_next/static`, `_next/image`, `favicon.ico`, `robots.txt`, `.well-known`, `images/`, `api/webhooks` et les préchargements. Directives partagées dans `src/lib/security/csp.ts`. `next.config.ts` garde une CSP de repli (avec `'unsafe-inline'`) que le middleware remplace quand il s'exécute (une seule CSP envoyée). Convention `middleware.ts` (dépréciée dans Next 16) et non `proxy.ts` : le serveur de `next-bundle` 1.0.0 (Wasmer) n'exécute que les middlewares en runtime edge, un proxy Node est ignoré sans erreur (vérifié en reproduisant l'empaquetage en local). Config `fil-de-sable-prod-3002` ajoutée à `.claude/launch.json` (le port 3001 était occupé par un `next start` d'une autre conversation).
+- **Correctif :** `src/middleware.ts` (guide Next « Content Security Policy ») tire un nonce de 128 bits par requête (WebCrypto), pose `script-src 'self' 'nonce-…' 'strict-dynamic'` (`'unsafe-eval'` en dev seulement, autres directives inchangées) et transmet le nonce par les en-têtes de requête `x-nonce` et `Content-Security-Policy` ; matcher excluant `_next/static`, `_next/image`, `favicon.ico`, `robots.txt`, `.well-known`, `images/`, `api/webhooks` et les préchargements. Directives partagées dans `src/lib/security/csp.ts`. `next.config.ts` garde une CSP de repli (avec `'unsafe-inline'`) que le middleware remplace quand il s'exécute (une seule CSP envoyée). Convention `middleware.ts` (dépréciée dans Next 16) et non `proxy.ts` : l'ancien hébergement n'exécutait que les middlewares en runtime edge. Config `fil-de-sable-prod-3002` ajoutée à `.claude/launch.json` (le port 3001 était occupé par un `next start` d'une autre conversation).
 - **Fichiers :** `src/middleware.ts`, `src/lib/security/csp.ts`, `next.config.ts`, `.claude/launch.json`, `README.md`, `AUDIT-SECURITE.md`
-- **Vérification :** typecheck OK · lint OK · build OK (toutes les routes en ƒ, « ƒ Proxy (Middleware) », chemins statiques Wasmer OK, avertissement de dépréciation attendu) · `next start` port 3002 : une seule CSP par réponse, avec nonce et sans `'unsafe-inline'` sur `/` et `/connexion`, CSP de repli sur `robots.txt` et les préchargements · navigateur : `/`, `/boutique`, `/boutique/perle-d-ecume`, `/configurateur`, `/quiz`, `/connexion`, `/panier`, 404 en flux : tous les scripts portent le nonce de l'en-tête, aucune violation en console (console testée : un `onclick` injecté est bien bloqué et journalisé), ajout au panier (Server Action) OK, navigation client OK, bracelet au survol OK · en prod : CSP à nonce sur `/`, `/connexion` et une fiche produit, CSP de repli sur un préchargement et sur le webhook Stripe ; accueil, boutique et fiche produit sans violation, navigation client et survol OK ; sondes du déploiement toutes vertes.
-- **Notes :** déployé le 2026-10-15 (commit `8d6cf66`, version Wasmer `dav_R8EIJtWuW3dd`) depuis la branche `csp-nonce-middleware` = HEAD de `main` (`0adce62`) + ces 4 fichiers de code, créée dans un worktree temporaire pour ne pas embarquer les modifications non commitées de `main` (correctifs de l'audit, bracelet 3D en cours). `main` a ensuite été avancé en fast-forward sur ce commit (la branche `csp-nonce-middleware`, identique, peut être supprimée) ; les docs de ce correctif restent à commiter avec celles de l'audit. Retour en arrière immédiat si besoin : `wasmer app version activate dav_KgYIZtZuk0yx` (v13). Plus tard : renommer en `proxy.ts` quand `next-bundle` exécutera les proxys Node (voir `AUDIT-SECURITE.md`, suites).
+- **Vérification :** typecheck OK · lint OK · build OK (toutes les routes en ƒ, « ƒ Proxy (Middleware) », avertissement de dépréciation attendu) · `next start` port 3002 : une seule CSP par réponse, avec nonce et sans `'unsafe-inline'` sur `/` et `/connexion`, CSP de repli sur `robots.txt` et les préchargements · navigateur : `/`, `/boutique`, `/boutique/perle-d-ecume`, `/configurateur`, `/quiz`, `/connexion`, `/panier`, 404 en flux : tous les scripts portent le nonce de l'en-tête, aucune violation en console (console testée : un `onclick` injecté est bien bloqué et journalisé), ajout au panier (Server Action) OK, navigation client OK, bracelet au survol OK · en prod : CSP à nonce sur `/`, `/connexion` et une fiche produit, CSP de repli sur un préchargement et sur le webhook Stripe ; accueil, boutique et fiche produit sans violation, navigation client et survol OK.
+- **Notes :** déployé le 2026-10-15 sur l'ancien hébergement (commit `8d6cf66`) depuis la branche `csp-nonce-middleware` = HEAD de `main` (`0adce62`) + ces 4 fichiers de code, créée dans un worktree temporaire pour ne pas embarquer les modifications non commitées de `main` (correctifs de l'audit, bracelet 3D en cours). `main` a ensuite été avancé en fast-forward sur ce commit (la branche `csp-nonce-middleware`, identique, peut être supprimée) ; les docs de ce correctif restent à commiter avec celles de l'audit. Migration vers `proxy.ts` à faire (voir `AUDIT-SECURITE.md`, suites).
 
 ### 2026-10-15 — Audit de sécurité : Next 16.4.1 et durcissement couche par couche
 - **Statut :** ✅
@@ -125,13 +140,6 @@ _(bugs remontés mais pas encore traités)_
 - **Vérification :** typecheck OK · lint OK · build OK · en prod, la classe collée n'apparaît plus dans le HTML.
 - **Notes :** déployé le 2026-10-15 (`13f6e87`), avec le bracelet de macramé au survol (`vine-weave.tsx`, travail d'une autre conversation).
 
-### 2026-10-15 — Déploiement : contrôles des pages protégées et des fichiers statiques
-- **Statut :** ✅
-- **Problème :** les sondes du skill `deploy-wasmer` ne vérifiaient que le code HTTP des pages : elles n'ont vu ni la navigation morte, ni la fuite de `/admin`, et signalaient à tort un 500 au premier appel d'une instance qui démarre.
-- **Correctif :** après déploiement, le script vérifie chaque fichier JS/CSS de l'accueil, ouvre `/admin`, `/compte`, `/commande`… sans session et échoue si du contenu réservé apparaît, et retente une fois une page en 5xx.
-- **Fichiers :** `.claude/skills/deploy-wasmer/scripts/deploy.ps1`, `.claude/skills/deploy-wasmer/SKILL.md`
-- **Vérification :** contrôle des 6 pages protégées exécuté sur le site en ligne : 0 erreur ; déploiements `5435d47`, `cc6794e`, `ed9723b` passés par le script.
-
 ### 2026-10-15 — Fuite du tableau de bord admin vers les visiteurs non connectés
 - **Statut :** 🚀
 - **Problème :** `/admin` ouvert sans être connecté renvoyait le contenu du tableau de bord (compteurs, chiffre d'affaires, dernières commandes) avant de rediriger vers `/connexion`. Introduit par l'écran de chargement ci-dessous.
@@ -143,20 +151,11 @@ _(bugs remontés mais pas encore traités)_
 
 ### 2026-10-15 — Écran de chargement immédiat au clic sur un lien
 - **Statut :** 🚀
-- **Problème :** après un clic, rien ne bougeait pendant 2 à 10 s (rendu lent chez Wasmer) : les boutons semblaient ne pas fonctionner.
+- **Problème :** après un clic, rien ne bougeait pendant 2 à 10 s (rendu lent en ligne) : les boutons semblaient ne pas fonctionner.
 - **Correctif :** `loading.tsx` à la racine affiche « On noue la page… » avec le fil animé (animation coupée si l'utilisateur réduit les animations).
 - **Fichiers :** `src/app/loading.tsx`, `src/app/loading.module.css`
 - **Vérification :** build OK · en prod, l'écran s'affiche dès le clic sur « Voir la boutique » puis la page arrive.
 - **Notes :** déployé le 2026-10-15 (`cc6794e`). Effet de bord : les pages protégées et les produits inexistants répondent 200 (redirection / « introuvable » dans le flux) au lieu de 307 / 404.
-
-### 2026-10-15 — Liens du site inopérants hors page d'accueil
-- **Statut :** 🚀
-- **Problème :** en ligne, un clic sur un lien (Boutique, L'atelier…) ne menait nulle part ; console : `ChunkLoadError: Loading chunk 500 failed`.
-- **Cause :** `next-bundle` (empaquetage Wasmer) applique ses routes d'erreur `/500` et `/404/?` sans ancrage, donc à tout chemin qui *contient* `/500` : le fichier `/_next/static/chunks/500-<hash>.js` était servi en erreur 500.
-- **Correctif :** tous les chunks JS côté navigateur sont préfixés `c-` (modèles de nom fixes dans `next.config.ts`) ; `scripts/check-static-paths.mjs`, lancé par `npm run build`, échoue si une URL statique contient `/404` ou `/500`.
-- **Fichiers :** `next.config.ts`, `package.json`, `scripts/check-static-paths.mjs`
-- **Vérification :** build OK · navigation testée en local (`next start`) sur 5 liens sans rechargement ni erreur · en prod, clic Accueil → Boutique sans rechargement, `c-500-….js` servi en 200.
-- **Notes :** déployé le 2026-10-15 (`5435d47`, après un premier essai incomplet `aa02500`).
 
 ### 2026-10-15 — Lien Facebook à la place d'Instagram
 - **Statut :** 🚀
@@ -190,8 +189,9 @@ _(bugs remontés mais pas encore traités)_
 - Stack : Next.js 16.4 (lire `node_modules/next/dist/docs/` avant de coder), React 19.3, Prisma 6 + Postgres, Stripe, Tailwind 4.
 - Vérifs avant déploiement : `npm run typecheck`, `npm run lint`, `npm run build` (build en `--webpack`).
 - Postgres local portable : à démarrer manuellement après un redémarrage.
-- Déploiement : skill `deploy-wasmer` → fil-de-sable.wasmer.app.
+- Mise en ligne : push sur `main` → Render redéploie automatiquement (`render.yaml`, https://fil-de-sable.onrender.com).
+- Migrations : à appliquer **avant** le push, depuis le poste, sur Supabase avec `PROD_MIGRATE_URL`.
 - Pages protégées : appeler `requireAdmin()` / `requireUser()` dans **chaque page**, pas seulement dans le layout (rendu en flux à cause de `loading.tsx`).
-- Ne pas défaire le préfixe `c-` des chunks dans `next.config.ts` : `next-bundle` sert en erreur toute URL contenant `/500` ou `/404`.
-- `next-bundle` 1.0.0 (Wasmer) n'exécute que les middlewares en runtime edge : la CSP à nonce vit dans `src/middleware.ts` (convention dépréciée) ; un `proxy.ts` Next 16 (toujours Node) serait ignoré en ligne, les `headers()` de `next.config.ts` s'appliquent bien. Reproduire l'empaquetage en local : `npx next-bundle@1.0.0 . --skip-build` puis `node .next-bundle/server.mjs` (sous Windows les pages répondent 500, traces non retrouvées, mais les en-têtes et le routage restent observables) ; supprimer `.next-bundle/` ensuite avec `cmd /c rmdir /s /q .next-bundle` (liens symboliques, non suivi par git).
-- Retour en arrière instantané d'un déploiement, sans rebuild : `wasmer app version list sharsstech/fil-de-sable` puis `wasmer app version activate <id>`.
+- La CSP à nonce vit dans `src/middleware.ts` (convention dépréciée dans Next 16) : migration vers `proxy.ts` à faire.
+- Retour en arrière d'un déploiement : « Rollback » sur un déploiement précédent dans le tableau de bord Render.
+- Tests dans le panneau navigateur masqué : Next 16.4 attend `requestAnimationFrame` pour révéler le contenu en flux, donc la page ne s'hydrate pas (boutons inertes). Contournement dans la console : remplacer `requestAnimationFrame` par un `setTimeout`, appeler `$RV($RB)` puis `_reactRetry()` sur les commentaires `$` du DOM. Les vrais visiteurs (onglet visible) ne sont pas concernés.

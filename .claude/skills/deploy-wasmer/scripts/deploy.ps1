@@ -140,15 +140,19 @@ $url = [regex]::Match((Get-Content $deployLog -Raw), 'Live:\s+(\S+)').Groups[1].
 if (-not $url) { $url = "https://$name.wasmer.app" }
 Step "Sondes sur $url"
 $errors = 0
+function Probe([string]$target) {
+  $req = [Net.HttpWebRequest]::Create($target); $req.AllowAutoRedirect = $false; $req.Timeout = 90000
+  try { $resp = $req.GetResponse() } catch [Net.WebException] { $resp = $_.Exception.Response }
+  if (-not $resp) { return 0 }
+  $code = [int]$resp.StatusCode; $resp.Close(); return $code
+}
 foreach ($p in $Paths) {
   $sw = [Diagnostics.Stopwatch]::StartNew()
-  $req = [Net.HttpWebRequest]::Create("$url$p"); $req.AllowAutoRedirect = $false; $req.Timeout = 90000
-  try { $resp = $req.GetResponse() } catch [Net.WebException] { $resp = $_.Exception.Response }
-  if ($resp) {
-    $code = [int]$resp.StatusCode; $resp.Close()
-    if ($code -ge 500) { $errors++ }
-    "{0,-26} {1}  {2,6} ms" -f $p, $code, $sw.ElapsedMilliseconds
-  } else { $errors++; "{0,-26} PAS DE REPONSE" -f $p }
+  $code = Probe "$url$p"; $note = ""
+  # Première requête sur une instance qui démarre : un 5xx isolé est retesté une fois.
+  if ($code -ge 500 -or $code -eq 0) { Start-Sleep 3; $first = $code; $sw.Restart(); $code = Probe "$url$p"; $note = "(1er essai : $first)" }
+  if ($code -ge 500 -or $code -eq 0) { $errors++ }
+  "{0,-26} {1}  {2,6} ms  {3}" -f $p, $(if ($code) { $code } else { 'PAS DE REPONSE' }), $sw.ElapsedMilliseconds, $note
 }
 
 # Fichiers JS/CSS de la page d'accueil : un seul en erreur casse la navigation côté navigateur

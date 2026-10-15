@@ -1,0 +1,21 @@
+/* Le fil se dessine, puis se défait, en boucle. */
+@keyframes draw {
+  from {
+    stroke-dashoffset: 340;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.thread path {
+  stroke-dasharray: 340;
+  animation: draw 1.4s ease-in-out infinite alternate;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .thread path {
+    animation: none;
+    stroke-dasharray: none;
+  }
+}

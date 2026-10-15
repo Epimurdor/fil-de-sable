@@ -15,17 +15,16 @@ CREATE DATABASE fildesable OWNER fildesable;
 ```
 
 ```bash
-corepack enable       # active pnpm
-pnpm install          # le client Prisma est généré par dev/build/typecheck (pas de postinstall : build Wasmer)
+npm install           # le client Prisma est généré par dev/build/typecheck (pas de postinstall : build Wasmer)
 cp .env.example .env  # puis renseigne DATABASE_URL, SEED_ADMIN_EMAIL et SEED_ADMIN_PASSWORD
-pnpm db:migrate       # applique les migrations et lance le seed
-pnpm dev              # http://localhost:3000
+npm run db:migrate       # applique les migrations et lance le seed
+npm run dev           # http://localhost:3000
 ```
 
 `CREATEDB` sert à `prisma migrate dev`, qui crée une base temporaire (shadow database) pour comparer les schémas.
 
 Le seed crée un compte administrateur (e-mail et mot de passe dans `.env`), trois catégories,
-dix produits et trois modes de livraison. Relance-le à tout moment avec `pnpm db:seed` (idempotent).
+dix produits et trois modes de livraison. Relance-le à tout moment avec `npm run db:seed` (idempotent).
 Il refuse un mot de passe admin faible (moins de 14 caractères, valeur connue) ; relancé, il remplace
 le mot de passe admin par celui de `.env` et ferme ses sessions ouvertes.
 
@@ -67,22 +66,22 @@ public/images/     photos produits
 
 | Commande | Rôle |
 | --- | --- |
-| `pnpm dev` | serveur de développement |
-| `pnpm build` / `pnpm start` | build et serveur de production |
-| `pnpm typecheck` | `tsc --noEmit` (lance `pnpm next typegen` avant, la première fois) |
-| `pnpm lint` | ESLint |
-| `pnpm db:migrate` | migration Prisma (dev) + seed |
-| `pnpm db:deploy` | applique les migrations existantes (production) |
-| `pnpm db:seed` | seed seul |
-| `pnpm db:studio` | Prisma Studio |
-| `pnpm db:reset` | remet la base à zéro |
+| `npm run dev` | serveur de développement |
+| `npm run build` / `npm run start` | build et serveur de production |
+| `npm run typecheck` | `tsc --noEmit` (lance `npx next typegen` avant, la première fois) |
+| `npm run lint` | ESLint |
+| `npm run db:migrate` | migration Prisma (dev) + seed |
+| `npm run db:deploy` | applique les migrations existantes (production) |
+| `npm run db:seed` | seed seul |
+| `npm run db:studio` | Prisma Studio |
+| `npm run db:reset` | remet la base à zéro |
 
 ## Tester Stripe en local
 
 1. Crée un compte Stripe et reste en **mode test**. Copie la clé secrète `sk_test_…` dans `STRIPE_SECRET_KEY` (`.env`).
 2. Installe la [Stripe CLI](https://docs.stripe.com/stripe-cli), puis `stripe login` et
    `stripe listen --forward-to localhost:3000/api/webhooks/stripe`. Copie le `whsec_…` affiché dans `STRIPE_WEBHOOK_SECRET`.
-3. `PAYMENT_PROVIDER="stripe"`, relance `pnpm dev`, commande et paie avec la carte de test `4242 4242 4242 4242` (date future, CVC quelconque).
+3. `PAYMENT_PROVIDER="stripe"`, relance `npm run dev`, commande et paie avec la carte de test `4242 4242 4242 4242` (date future, CVC quelconque).
 
 ## Déployer sur Wasmer Edge
 
@@ -98,8 +97,8 @@ Le support Node.js de Wasmer Edge (Edge.js) est en **bêta** : teste chaque éta
    $env:DATABASE_URL = "postgresql://UTILISATEUR:MOTDEPASSE@HOTE:PORT/BASE?sslmode=require"
    $env:SEED_ADMIN_EMAIL = "ton-adresse@exemple.fr"
    $env:SEED_ADMIN_PASSWORD = "un-mot-de-passe-de-prod-different-du-dev"
-   pnpm db:deploy
-   pnpm db:seed
+   npm run db:deploy
+   npm run db:seed
    Remove-Item Env:DATABASE_URL, Env:SEED_ADMIN_PASSWORD
    ```
 

@@ -1,34 +1,22 @@
 import type { NextConfig } from "next";
+import { buildContentSecurityPolicy } from "./src/lib/security/csp";
 
 const isDev = process.env.NODE_ENV !== "production";
 
-// 'unsafe-inline' reste nécessaire aux scripts d'hydratation de Next sans nonce ;
-// 'unsafe-eval' uniquement en dev (React s'en sert pour reconstruire les piles d'appels).
-const contentSecurityPolicy = [
-  "default-src 'self'",
-  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
-  "style-src 'self' 'unsafe-inline'",
-  // Photos servies depuis /public uniquement (voir src/lib/images.ts).
-  "img-src 'self' data: blob:",
-  "font-src 'self' data:",
-  `connect-src 'self'${isDev ? " ws: wss:" : ""}`,
-  "object-src 'none'",
-  "base-uri 'self'",
-  // Stripe Checkout : redirection après envoi du formulaire de paiement.
-  "form-action 'self' https://checkout.stripe.com",
-  "frame-ancestors 'none'",
-  "frame-src 'none'",
-  "manifest-src 'self'",
-  "worker-src 'self' blob:",
-  ...(isDev ? [] : ["upgrade-insecure-requests"]),
-].join("; ");
-
 const securityHeaders = [
-  { key: "Content-Security-Policy", value: contentSecurityPolicy },
+  // CSP de repli, sans nonce (donc avec 'unsafe-inline' pour les scripts d'hydratation). La CSP réelle,
+  // à nonce par requête, est posée par src/middleware.ts et REMPLACE celle-ci quand le middleware
+  // s'exécute (Next comme le serveur de next-bundle écrasent l'en-tête de même nom) : une seule CSP part
+  // dans tous les cas. Celle-ci ne sert que là où le middleware n'est pas exécuté (par exemple un
+  // proxy.ts Node chez Wasmer : next-bundle 1.0.0 n'exécute que les middlewares en runtime « edge »).
+  { key: "Content-Security-Policy", value: buildContentSecurityPolicy({ dev: isDev }) },
   { key: "X-Frame-Options", value: "DENY" },
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
-  { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), payment=(), usb=()" },
+  {
+    key: "Permissions-Policy",
+    value: "camera=(), microphone=(), geolocation=(), payment=(), usb=(), browsing-topics=(), interest-cohort=()",
+  },
   { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
   { key: "Cross-Origin-Resource-Policy", value: "same-origin" },
   { key: "X-DNS-Prefetch-Control", value: "off" },
@@ -39,6 +27,16 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  images: {
+    // Seules les photos de /public/images passent par l'optimiseur (/_next/image) : aucune URL
+    // externe, aucun autre fichier de /public, pas de paramètre de requête, pas de SVG.
+    localPatterns: [{ pathname: "/images/**", search: "" }],
+    dangerouslyAllowSVG: false,
+  },
+  experimental: {
+    // Les formulaires du site pèsent quelques Ko : inutile d'accepter 1 Mo (défaut) par Server Action.
+    serverActions: { bodySizeLimit: "200kb" },
+  },
   // Hébergement Wasmer (next-bundle) : seuls les fichiers tracés sont embarqués. Le client Prisma
   // lit son moteur WebAssembly (query_compiler_bg.wasm) sur le disque : invisible pour le traçage.
   outputFileTracingIncludes: {

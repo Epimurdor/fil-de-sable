@@ -17,14 +17,30 @@ export const THREAD_PALETTE = [
   { code: "noir", name: "Noir", hex: "#2B2B2B" },
 ] as const;
 
+export type BeadMetal = "or" | "argent";
+
+// metal : perles métal des modèles 3D (couleur fixe, jamais teintée par le fil).
 export const BEADS = [
-  { code: "aucune", name: "Sans perle", hex: null, priceDeltaCents: 0 },
-  { code: "nacre", name: "Perle nacrée", hex: "#F2EFE6", priceDeltaCents: 200 },
-  { code: "quartz-rose", name: "Quartz rose", hex: "#E8C4D0", priceDeltaCents: 300 },
-  { code: "bois", name: "Perle en bois", hex: "#A67B5B", priceDeltaCents: 200 },
-  { code: "lave", name: "Pierre de lave", hex: "#2B2B2B", priceDeltaCents: 400 },
-  { code: "turquoise", name: "Turquoise", hex: "#5FB8B0", priceDeltaCents: 300 },
+  { code: "argent", name: "Perles argentées", hex: "#D9DCE1", priceDeltaCents: 0, metal: "argent" },
+  { code: "or", name: "Perles dorées", hex: "#E2B65A", priceDeltaCents: 0, metal: "or" },
+  { code: "aucune", name: "Sans perle", hex: null, priceDeltaCents: 0, metal: null },
+  { code: "nacre", name: "Perle nacrée", hex: "#F2EFE6", priceDeltaCents: 200, metal: null },
+  { code: "quartz-rose", name: "Quartz rose", hex: "#E8C4D0", priceDeltaCents: 300, metal: null },
+  { code: "bois", name: "Perle en bois", hex: "#A67B5B", priceDeltaCents: 200, metal: null },
+  { code: "lave", name: "Pierre de lave", hex: "#2B2B2B", priceDeltaCents: 400, metal: null },
+  { code: "turquoise", name: "Turquoise", hex: "#5FB8B0", priceDeltaCents: 300, metal: null },
 ] as const;
+
+// Modèles 3D par motif (GLB produit par scripts/build-bracelet-model.mjs).
+// Un motif en 3D ne propose que les perles or ou argent ; les autres motifs gardent le croquis et toutes les perles.
+export const PATTERN_MODELS: Partial<Record<string, string>> = {
+  arabesques: "/models/bracelet-perle-d-ecume.glb",
+  vagues: "/models/quartz-rose/bracelet.gltf", // modèle Meshy texturé (scripts/build-textured-model.mjs)
+};
+
+export function beadsForPattern(pattern: string) {
+  return PATTERN_MODELS[pattern] ? BEADS.filter((b) => b.metal) : BEADS;
+}
 
 export const PATTERNS = [
   { code: "vagues", name: "Vagues", description: "Lignes souples qui ondulent" },
@@ -54,7 +70,15 @@ export const customConfigSchema = z
     size: z.enum(SIZES.map((s) => s.code) as [string, ...string[]]),
     pattern: z.enum(PATTERNS.map((p) => p.code) as [string, ...string[]]),
   })
-  .strict();
+  .strict()
+  .refine((c) => beadsForPattern(c.pattern).some((b) => b.code === c.bead), {
+    message: "Ce motif se fait avec des perles dorées ou argentées.",
+    path: ["bead"],
+  })
+  .refine((c) => !PATTERN_MODELS[c.pattern] || c.threads.length === 1, {
+    message: "Ce motif se noue d'un seul fil.",
+    path: ["threads"],
+  });
 
 export function customPriceCents(basePriceCents: number, config: CustomConfig): number {
   const bead = BEADS.find((b) => b.code === config.bead);
@@ -79,8 +103,8 @@ export function describeConfig(config: CustomConfig): string[] {
 }
 
 export const DEFAULT_CONFIG: CustomConfig = {
-  threads: ["#4F6478", "#F3EBDD"],
-  bead: "nacre",
+  threads: ["#4F6478"],
+  bead: "argent",
   size: "M",
   pattern: "arabesques",
 };

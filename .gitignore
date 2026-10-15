@@ -53,3 +53,6 @@ next-env.d.ts
 
 # ruflo local state
 /.claude-flow/
+
+# Sorties brutes Meshy (modèles et textures 8k, lourds) : seul le GLB allégé de public/models est versionné
+meshy-output/

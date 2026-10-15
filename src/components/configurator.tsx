@@ -1,13 +1,30 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useActionState, useState } from "react";
 import { SubmitButton } from "@/components/forms/submit-button";
 import { ProductVisual } from "@/components/product-visual";
 import { addCustomBracelet, type CartActionState } from "@/lib/cart/actions";
 import { cn } from "@/lib/cn";
-import { BEADS, DEFAULT_CONFIG, PATTERNS, SIZES, THREAD_PALETTE, customPriceCents, describeConfig } from "@/lib/configurator";
+import {
+  BEADS,
+  DEFAULT_CONFIG,
+  PATTERNS,
+  PATTERN_MODELS,
+  SIZES,
+  THREAD_PALETTE,
+  beadsForPattern,
+  customPriceCents,
+  describeConfig,
+} from "@/lib/configurator";
 import { formatPrice } from "@/lib/format";
 import type { CustomConfig } from "@/lib/types";
+
+// three.js (~600 Ko) chargé seulement côté client, quand l'aperçu 3D s'affiche.
+const Bracelet3D = dynamic(() => import("@/components/bracelet-3d"), {
+  ssr: false,
+  loading: () => <div className="aspect-square rounded-md bg-paper-2" />,
+});
 
 const chip = (active: boolean) =>
   cn(
@@ -32,9 +49,12 @@ export function Configurator({ basePriceCents, leadTimeDays }: { basePriceCents:
   const [state, action] = useActionState<CartActionState, FormData>(addCustomBracelet, {});
   const price = customPriceCents(basePriceCents, config);
   const bead = BEADS.find((b) => b.code === config.bead);
+  const modelUrl = PATTERN_MODELS[config.pattern];
 
   function toggleThread(hex: string) {
     setConfig((c) => {
+      // Motif en 3D : un seul fil, la couleur choisie remplace la précédente.
+      if (PATTERN_MODELS[c.pattern]) return { ...c, threads: [hex] };
       if (c.threads.includes(hex)) {
         return c.threads.length > 1 ? { ...c, threads: c.threads.filter((t) => t !== hex) } : c;
       }
@@ -47,15 +67,30 @@ export function Configurator({ basePriceCents, leadTimeDays }: { basePriceCents:
       <input type="hidden" name="config" value={JSON.stringify(config)} />
 
       <div className="lg:sticky lg:top-6 lg:self-start">
-        <ProductVisual
-          sketch
-          colors={config.threads}
-          beadHex={bead?.hex ?? null}
-          pattern={config.pattern}
-          alt="Croquis de ton bracelet"
-          className="aspect-square rounded-md"
-        />
-        <p className="mt-2 text-xs text-ink-3">Un croquis, pas une photo : le vrai est noué à la main.</p>
+        {modelUrl ? (
+          <>
+            <Bracelet3D
+              modelUrl={modelUrl}
+              threadHex={config.threads[0]}
+              metal={bead?.metal ?? "argent"}
+              label={`Aperçu 3D de ton bracelet : ${describeConfig(config).join(", ")}`}
+              className="aspect-square rounded-md"
+            />
+            <p className="mt-2 text-xs text-ink-3">Fais-le tourner du doigt. Le vrai est noué à la main.</p>
+          </>
+        ) : (
+          <>
+            <ProductVisual
+              sketch
+              colors={config.threads}
+              beadHex={bead?.hex ?? null}
+              pattern={config.pattern}
+              alt="Croquis de ton bracelet"
+              className="aspect-square rounded-md"
+            />
+            <p className="mt-2 text-xs text-ink-3">Un croquis, pas une photo : le vrai est noué à la main.</p>
+          </>
+        )}
         <div className="mt-5 border-t border-line pt-5">
           <div className="flex items-baseline justify-between">
             <p className="text-lg font-medium text-ink">Ton bracelet</p>
@@ -75,7 +110,10 @@ export function Configurator({ basePriceCents, leadTimeDays }: { basePriceCents:
       </div>
 
       <div className="space-y-10">
-        <Step title="Les fils" hint={`${config.threads.length} sur 3, chaque fil en plus : +1 €`}>
+        <Step
+          title={modelUrl ? "Le fil" : "Les fils"}
+          hint={modelUrl ? "une couleur, noué d'un seul fil" : `${config.threads.length} sur 3, chaque fil en plus : +1 €`}
+        >
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
             {THREAD_PALETTE.map((t) => {
               const active = config.threads.includes(t.hex);
@@ -93,16 +131,16 @@ export function Configurator({ basePriceCents, leadTimeDays }: { basePriceCents:
                 >
                   <span className="h-6 w-6 shrink-0 rounded-full ring-1 ring-ink/15" style={{ backgroundColor: t.hex }} />
                   <span className="text-ink">{t.name}</span>
-                  {active && <span className="ml-auto text-xs text-ink-3">{order + 1}</span>}
+                  {active && !modelUrl && <span className="ml-auto text-xs text-ink-3">{order + 1}</span>}
                 </button>
               );
             })}
           </div>
         </Step>
 
-        <Step title="La perle">
+        <Step title={modelUrl ? "Les perles" : "La perle"} hint={modelUrl ? "dorées ou argentées, le fil garde sa couleur" : undefined}>
           <div className="flex flex-wrap gap-2">
-            {BEADS.map((b) => {
+            {beadsForPattern(config.pattern).map((b) => {
               const active = config.bead === b.code;
               return (
                 <button
@@ -129,7 +167,15 @@ export function Configurator({ basePriceCents, leadTimeDays }: { basePriceCents:
                 <button
                   type="button"
                   key={p.code}
-                  onClick={() => setConfig((c) => ({ ...c, pattern: p.code }))}
+                  onClick={() =>
+                    setConfig((c) => {
+                      // Un motif en 3D n'accepte que des perles or ou argent : on bascule sur l'argent si besoin.
+                      // ... et sur un seul fil.
+                      const allowed = beadsForPattern(p.code).some((b) => b.code === c.bead);
+                      const threads = PATTERN_MODELS[p.code] ? c.threads.slice(0, 1) : c.threads;
+                      return { ...c, pattern: p.code, bead: allowed ? c.bead : "argent", threads };
+                    })
+                  }
                   aria-pressed={active}
                   className={cn(
                     "rounded-md border bg-card p-4 text-left transition-colors",

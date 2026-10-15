@@ -1,0 +1,236 @@
+{
+  "asset": {
+    "generator": "glTF-Transform v4.5.0",
+    "version": "2.0"
+  },
+  "extras": {
+    "recolor": "texture-luminance",
+    "source": "model.glb"
+  },
+  "accessors": [
+    {
+      "type": "SCALAR",
+      "componentType": 5125,
+      "count": 749988,
+      "normalized": false,
+      "byteOffset": 0,
+      "bufferView": 0
+    },
+    {
+      "type": "VEC3",
+      "componentType": 5122,
+      "count": 157187,
+      "max": [
+        32227,
+        7924,
+        32767
+      ],
+      "min": [
+        -32227,
+        -7924,
+        -32767
+      ],
+      "normalized": true,
+      "byteOffset": 0,
+      "bufferView": 1
+    },
+    {
+      "type": "VEC3",
+      "componentType": 5122,
+      "count": 157187,
+      "normalized": true,
+      "byteOffset": 0,
+      "bufferView": 2
+    },
+    {
+      "type": "VEC2",
+      "componentType": 5123,
+      "count": 157187,
+      "normalized": true,
+      "byteOffset": 0,
+      "bufferView": 3
+    }
+  ],
+  "bufferViews": [
+    {
+      "buffer": 1,
+      "byteOffset": 0,
+      "byteLength": 2999952,
+      "target": 34963,
+      "extensions": {
+        "EXT_meshopt_compression": {
+          "buffer": 0,
+          "byteOffset": 0,
+          "byteLength": 284150,
+          "mode": "TRIANGLES",
+          "byteStride": 4,
+          "count": 749988
+        }
+      }
+    },
+    {
+      "buffer": 1,
+      "byteOffset": 2999952,
+      "byteLength": 1257496,
+      "target": 34962,
+      "byteStride": 8,
+      "extensions": {
+        "EXT_meshopt_compression": {
+          "buffer": 0,
+          "byteOffset": 284152,
+          "byteLength": 627013,
+          "mode": "ATTRIBUTES",
+          "byteStride": 8,
+          "count": 157187
+        }
+      }
+    },
+    {
+      "buffer": 1,
+      "byteOffset": 4257448,
+      "byteLength": 1257496,
+      "target": 34962,
+      "byteStride": 8,
+      "extensions": {
+        "EXT_meshopt_compression": {
+          "buffer": 0,
+          "byteOffset": 911168,
+          "byteLength": 960570,
+          "mode": "ATTRIBUTES",
+          "byteStride": 8,
+          "count": 157187
+        }
+      }
+    },
+    {
+      "buffer": 1,
+      "byteOffset": 5514944,
+      "byteLength": 628748,
+      "target": 34962,
+      "byteStride": 4,
+      "extensions": {
+        "EXT_meshopt_compression": {
+          "buffer": 0,
+          "byteOffset": 1871740,
+          "byteLength": 415821,
+          "mode": "ATTRIBUTES",
+          "byteStride": 4,
+          "count": 157187
+        }
+      }
+    }
+  ],
+  "samplers": [
+    {
+      "magFilter": 9729,
+      "minFilter": 9987,
+      "wrapS": 10497,
+      "wrapT": 10497
+    }
+  ],
+  "textures": [
+    {
+      "source": 0,
+      "sampler": 0
+    },
+    {
+      "source": 2,
+      "sampler": 0
+    },
+    {
+      "source": 1,
+      "sampler": 0
+    }
+  ],
+  "images": [
+    {
+      "mimeType": "image/jpeg",
+      "uri": "couleur.jpg"
+    },
+    {
+      "mimeType": "image/jpeg",
+      "uri": "metal-rugosite.jpg"
+    },
+    {
+      "mimeType": "image/jpeg",
+      "uri": "relief.jpg"
+    }
+  ],
+  "buffers": [
+    {
+      "uri": "bracelet.bin",
+      "byteLength": 2287564
+    },
+    {
+      "byteLength": 6143692,
+      "extensions": {
+        "EXT_meshopt_compression": {
+          "fallback": true
+        }
+      }
+    }
+  ],
+  "materials": [
+    {
+      "doubleSided": true,
+      "pbrMetallicRoughness": {
+        "baseColorTexture": {
+          "index": 0
+        },
+        "metallicRoughnessTexture": {
+          "index": 2
+        }
+      },
+      "normalTexture": {
+        "index": 1
+      }
+    }
+  ],
+  "meshes": [
+    {
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 1,
+            "NORMAL": 2,
+            "TEXCOORD_0": 3
+          },
+          "mode": 4,
+          "material": 0,
+          "indices": 0
+        }
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "translation": [
+        -0.0013124942779541016,
+        -0.0027709975838661194,
+        0.0024704933166503906
+      ],
+      "scale": [
+        0.9532794952392578,
+        0.9532794952392578,
+        0.9532794952392578
+      ],
+      "mesh": 0
+    }
+  ],
+  "scenes": [
+    {
+      "nodes": [
+        0
+      ]
+    }
+  ],
+  "scene": 0,
+  "extensionsUsed": [
+    "EXT_meshopt_compression",
+    "KHR_mesh_quantization"
+  ],
+  "extensionsRequired": [
+    "EXT_meshopt_compression",
+    "KHR_mesh_quantization"
+  ]
+}

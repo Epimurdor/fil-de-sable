@@ -155,6 +155,28 @@ foreach ($p in $Paths) {
   "{0,-26} {1}  {2,6} ms  {3}" -f $p, $(if ($code) { $code } else { 'PAS DE REPONSE' }), $sw.ElapsedMilliseconds, $note
 }
 
+# Pages protégées, en visiteur anonyme : avec loading.tsx (rendu en flux), la réponse vaut 200 et la
+# redirection se fait dans le flux. Une page qui ne vérifie pas elle-même l'accès enverrait son contenu
+# avant la redirection (fuite constatée le 15/10/2026 sur /admin) : on cherche des textes qui ne doivent
+# jamais apparaître sans connexion.
+Step "Pages protégées (visiteur anonyme)"
+$protected = @('/admin', '/admin/commandes', '/admin/produits', '/compte', '/compte/commandes', '/commande')
+$markers = "Chiffre d'affaires|Dernières commandes|Derni\\u00e8res commandes|À expédier|\\u00c0 exp\\u00e9dier|Se déconnecter|Se d\\u00e9connecter|Adresse de livraison"
+foreach ($p in $protected) {
+  try {
+    $html = (Invoke-WebRequest "$url$p" -UseBasicParsing -TimeoutSec 90 -MaximumRedirection 0 -ErrorAction Stop).Content
+  } catch {
+    $resp = $_.Exception.Response
+    if ($resp -and [int]$resp.StatusCode -in 301, 302, 303, 307, 308) { "{0,-26} redirection HTTP : OK" -f $p; continue }
+    $errors++; "{0,-26} ERREUR : {1}" -f $p, $_.Exception.Message; continue
+  }
+  $leak = [regex]::Match($html, $markers)
+  $redirect = $html -match 'connexion\?next='
+  if ($leak.Success) { $errors++; "{0,-26} FUITE : contenu protégé envoyé à un anonyme (« {1} »)" -f $p, $leak.Value }
+  elseif (-not $redirect) { $errors++; "{0,-26} ERREUR : pas de redirection vers /connexion" -f $p }
+  else { "{0,-26} redirection dans le flux, aucun contenu protégé : OK" -f $p }
+}
+
 # Fichiers JS/CSS de la page d'accueil : un seul en erreur casse la navigation côté navigateur
 # (ex. chunk "500-<hash>.js" servi en 500 par next-bundle), même si toutes les pages répondent 200.
 Step "Fichiers statiques (_next/static) de l'accueil"

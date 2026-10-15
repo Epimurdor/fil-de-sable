@@ -64,6 +64,17 @@ de ces points a corrigé une erreur 500 :
 | pas de `health_checks` dans `app.yaml` | la CLI 7.5 rejette la syntaxe documentée |
 | chunks numériques préfixés `c-` (`webpack()` dans `next.config.ts`) + `scripts/check-static-paths.mjs` dans `build` | next-bundle applique les routes `/500` et `/404/?` sans ancrage : un fichier dont l'URL contient `/500` ou `/404` (ex. `chunks/500-<hash>.js`) est servi en erreur et casse la navigation entre pages. Le build échoue si un tel chemin réapparaît (fichier de `public/` compris) |
 
+## Sécurité des pages protégées (rendu en flux)
+
+`src/app/loading.tsx` affiche un écran de chargement dès le clic (le rendu serveur peut prendre
+plusieurs secondes sur QuickJS). Conséquence : les réponses partent en 200 et `redirect()` /
+`notFound()` s'exécutent dans le flux. **Un contrôle d'accès placé seulement dans un `layout.tsx`
+ne protège plus la page** : elle se rend en parallèle et son contenu est envoyé avant la redirection
+(fuite constatée puis corrigée sur `/admin`). Règle : toute page protégée appelle elle-même
+`requireAdmin()` ou `requireUser()` en première ligne, et les lectures admin (`src/lib/orders/queries.ts`)
+revérifient le rôle. Le script de déploiement ouvre les pages protégées en anonyme et échoue s'il y
+trouve du contenu réservé.
+
 Symptôme typique de ce dernier point : l'accueil s'affiche mais aucun lien ne mène nulle part, avec
 `ChunkLoadError` dans la console du navigateur.
 

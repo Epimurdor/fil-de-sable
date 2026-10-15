@@ -39,6 +39,11 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  // Hébergement Wasmer (next-bundle) : seuls les fichiers tracés sont embarqués. @swc/helpers, requis
+  // à l'exécution par le serveur Next, échappe au traçage avec le node_modules strict de pnpm.
+  outputFileTracingIncludes: {
+    "/*": ["./node_modules/@swc/helpers/**/*"],
+  },
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },

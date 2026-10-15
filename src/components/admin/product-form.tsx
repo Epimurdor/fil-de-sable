@@ -19,6 +19,7 @@ export type ProductFormValues = {
   isActive: boolean;
   isFeatured: boolean;
   isCustomizable: boolean;
+  threadChoice: boolean;
 };
 
 const empty: ProductFormValues = {
@@ -35,6 +36,7 @@ const empty: ProductFormValues = {
   isActive: true,
   isFeatured: false,
   isCustomizable: false,
+  threadChoice: true,
 };
 
 export function ProductForm({
@@ -113,6 +115,13 @@ export function ProductForm({
         <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="isActive" defaultChecked={v.isActive} className="h-4 w-4 accent-accent" /> Visible dans la boutique</label>
         <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="isFeatured" defaultChecked={v.isFeatured} className="h-4 w-4 accent-accent" /> À la une sur l'accueil</label>
         <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="isCustomizable" defaultChecked={v.isCustomizable} className="h-4 w-4 accent-accent" /> Produit du configurateur</label>
+        <label className="flex items-start gap-2 text-sm">
+          <input type="checkbox" name="threadChoice" defaultChecked={v.threadChoice} className="mt-0.5 h-4 w-4 accent-accent" />
+          <span>
+            Couleur du fil au choix
+            <span className="block text-xs text-ink-3">Le client choisit parmi les bobines cochées dans Stock de fil (suit le stock en direct).</span>
+          </span>
+        </label>
         {state.error && <p role="alert" className="rounded-md bg-red-50 px-4 py-2 text-sm text-red-700">{state.error}</p>}
         <SubmitButton pendingText="Enregistrement…" className="w-full">{v.id ? "Enregistrer" : "Créer le produit"}</SubmitButton>
       </aside>

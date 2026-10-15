@@ -6,7 +6,9 @@ export type SelectedOptions = Record<string, string>;
 
 // Configuration issue du configurateur de bracelet.
 export type CustomConfig = {
-  threads: string[]; // 1 à 3 couleurs hex
+  threads: string[]; // 1 à 3 couleurs hex (aperçu)
+  threadCodes?: string[]; // codes ThreadColor, même ordre (absents des anciennes configurations)
+  threadLabels?: string[]; // « Turquoise · ciré n° 224 », figé par le serveur à l'ajout au panier
   bead: string; // code de perle (voir src/lib/configurator.ts)
   size: string; // S | M | L
   pattern: string; // code de motif
@@ -45,8 +47,11 @@ export function parseSelectedOptions(json: string | null | undefined): SelectedO
 export function parseCustomConfig(json: string | null | undefined): CustomConfig | null {
   const v = safeParse<Partial<CustomConfig> | null>(json, null);
   if (!v || !Array.isArray(v.threads)) return null;
+  const strings = (a: unknown) => (Array.isArray(a) ? a.filter((t): t is string => typeof t === "string") : undefined);
   return {
-    threads: v.threads.filter((t): t is string => typeof t === "string"),
+    threads: strings(v.threads)!,
+    threadCodes: strings(v.threadCodes),
+    threadLabels: strings(v.threadLabels),
     bead: String(v.bead ?? "aucune"),
     size: String(v.size ?? "M"),
     pattern: String(v.pattern ?? "vagues"),

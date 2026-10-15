@@ -20,6 +20,8 @@ export default async function HomePage() {
         </h1>
         <p className="mt-5 max-w-md text-lg text-ink-2">
           Fil ciré, perles et pierres. Chaque pièce est nouée après ta commande, dans un petit atelier.
+          Tissé uniquement avec du fil de qualité premium, certifié résistant à l'eau et à l'usure.
+          Tous les bracelets ont un nœud coulissant pour s'adapter à ton poignet.
         </p>
         <div className="mt-7 flex flex-wrap items-center gap-x-5 gap-y-2">
           <ButtonLink href="/boutique">Voir la boutique</ButtonLink>

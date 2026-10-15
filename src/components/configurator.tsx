@@ -3,6 +3,7 @@
 import dynamic from "next/dynamic";
 import { useActionState, useState } from "react";
 import { SubmitButton } from "@/components/forms/submit-button";
+import { PhotoRecolor } from "@/components/photo-recolor";
 import { ProductVisual } from "@/components/product-visual";
 import { addCustomBracelet, type CartActionState } from "@/lib/cart/actions";
 import { cn } from "@/lib/cn";
@@ -11,13 +12,14 @@ import {
   DEFAULT_CONFIG,
   PATTERNS,
   PATTERN_MODELS,
+  PATTERN_PHOTOS,
   SIZES,
-  THREAD_PALETTE,
   beadsForPattern,
   customPriceCents,
   describeConfig,
 } from "@/lib/configurator";
 import { formatPrice } from "@/lib/format";
+import { threadLabel, threadRef, type ThreadOption } from "@/lib/threads/labels";
 import type { CustomConfig } from "@/lib/types";
 
 // three.js (~600 Ko) chargé seulement côté client, quand l'aperçu 3D s'affiche.
@@ -44,21 +46,40 @@ function Step({ title, hint, children }: { title: string; hint?: string; childre
   );
 }
 
-export function Configurator({ basePriceCents, leadTimeDays }: { basePriceCents: number; leadTimeDays: number }) {
-  const [config, setConfig] = useState<CustomConfig>(DEFAULT_CONFIG);
+// threads (HEX de l'aperçu) et threadLabels suivent toujours threadCodes.
+function withThreads(c: CustomConfig, codes: string[], palette: ThreadOption[]): CustomConfig {
+  const picked = codes.map((code) => palette.find((t) => t.code === code)!).filter(Boolean);
+  return { ...c, threadCodes: picked.map((t) => t.code), threads: picked.map((t) => t.hex), threadLabels: picked.map(threadLabel) };
+}
+
+export function Configurator({
+  basePriceCents,
+  leadTimeDays,
+  threads: palette,
+}: {
+  basePriceCents: number;
+  leadTimeDays: number;
+  threads: ThreadOption[]; // bobines en stock uniquement
+}) {
+  const [config, setConfig] = useState<CustomConfig>(() => withThreads(DEFAULT_CONFIG, palette.slice(0, 1).map((t) => t.code), palette));
   const [state, action] = useActionState<CartActionState, FormData>(addCustomBracelet, {});
   const price = customPriceCents(basePriceCents, config);
   const bead = BEADS.find((b) => b.code === config.bead);
   const modelUrl = PATTERN_MODELS[config.pattern];
+  const photo = PATTERN_PHOTOS[config.pattern];
+  // Aperçu des motifs qui ont une photo et un modèle 3D : la photo d'abord.
+  const [view, setView] = useState<"photo" | "3d">("photo");
+  const codes = config.threadCodes ?? [];
 
-  function toggleThread(hex: string) {
+  function toggleThread(code: string) {
     setConfig((c) => {
+      const current = c.threadCodes ?? [];
       // Motif en 3D : un seul fil, la couleur choisie remplace la précédente.
-      if (PATTERN_MODELS[c.pattern]) return { ...c, threads: [hex] };
-      if (c.threads.includes(hex)) {
-        return c.threads.length > 1 ? { ...c, threads: c.threads.filter((t) => t !== hex) } : c;
+      if (PATTERN_MODELS[c.pattern]) return withThreads(c, [code], palette);
+      if (current.includes(code)) {
+        return current.length > 1 ? withThreads(c, current.filter((t) => t !== code), palette) : c;
       }
-      return c.threads.length >= 3 ? c : { ...c, threads: [...c.threads, hex] };
+      return current.length >= 3 ? c : withThreads(c, [...current, code], palette);
     });
   }
 
@@ -67,7 +88,35 @@ export function Configurator({ basePriceCents, leadTimeDays }: { basePriceCents:
       <input type="hidden" name="config" value={JSON.stringify(config)} />
 
       <div className="lg:sticky lg:top-6 lg:self-start">
-        {modelUrl ? (
+        {photo && modelUrl && (
+          <div className="mb-3 inline-flex rounded-md border border-line-2 bg-card p-0.5 text-sm" role="group" aria-label="Type d'aperçu">
+            {(["photo", "3d"] as const).map((v) => (
+              <button
+                key={v}
+                type="button"
+                onClick={() => setView(v)}
+                aria-pressed={view === v}
+                className={cn("rounded px-3 py-1.5 transition-colors", view === v ? "bg-ink text-paper" : "text-ink-2 hover:text-ink")}
+              >
+                {v === "photo" ? "Photo" : "3D"}
+              </button>
+            ))}
+          </div>
+        )}
+        {photo && (view === "photo" || !modelUrl) ? (
+          <>
+            <PhotoRecolor
+              photo={photo}
+              threadHex={config.threads[0]}
+              alt={`Photo du bracelet, fil recoloré : ${describeConfig(config).join(", ")}`}
+              className="aspect-[3/4] rounded-md"
+            />
+            <p className="mt-2 text-xs text-ink-3">
+              Le vrai bracelet, avec la couleur de fil choisie. Les {photo.beads} sont celles de la photo ; les couleurs à l'écran
+              restent approximatives.
+            </p>
+          </>
+        ) : modelUrl ? (
           <>
             <Bracelet3D
               modelUrl={modelUrl}
@@ -115,14 +164,14 @@ export function Configurator({ basePriceCents, leadTimeDays }: { basePriceCents:
           hint={modelUrl ? "une couleur, noué d'un seul fil" : `${config.threads.length} sur 3, chaque fil en plus : +1 €`}
         >
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-            {THREAD_PALETTE.map((t) => {
-              const active = config.threads.includes(t.hex);
-              const order = config.threads.indexOf(t.hex);
+            {palette.map((t) => {
+              const active = codes.includes(t.code);
+              const order = codes.indexOf(t.code);
               return (
                 <button
                   type="button"
                   key={t.code}
-                  onClick={() => toggleThread(t.hex)}
+                  onClick={() => toggleThread(t.code)}
                   aria-pressed={active}
                   className={cn(
                     "flex items-center gap-2.5 rounded-md border bg-card px-3 py-2 text-left text-sm transition-colors",
@@ -130,7 +179,10 @@ export function Configurator({ basePriceCents, leadTimeDays }: { basePriceCents:
                   )}
                 >
                   <span className="h-6 w-6 shrink-0 rounded-full ring-1 ring-ink/15" style={{ backgroundColor: t.hex }} />
-                  <span className="text-ink">{t.name}</span>
+                  <span className="min-w-0">
+                    <span className="block truncate text-ink">{t.shade}</span>
+                    <span className="block truncate text-xs text-ink-3">{threadRef(t)}</span>
+                  </span>
                   {active && !modelUrl && <span className="ml-auto text-xs text-ink-3">{order + 1}</span>}
                 </button>
               );
@@ -172,8 +224,9 @@ export function Configurator({ basePriceCents, leadTimeDays }: { basePriceCents:
                       // Un motif en 3D n'accepte que des perles or ou argent : on bascule sur l'argent si besoin.
                       // ... et sur un seul fil.
                       const allowed = beadsForPattern(p.code).some((b) => b.code === c.bead);
-                      const threads = PATTERN_MODELS[p.code] ? c.threads.slice(0, 1) : c.threads;
-                      return { ...c, pattern: p.code, bead: allowed ? c.bead : "argent", threads };
+                      const current = c.threadCodes ?? [];
+                      const next = withThreads(c, PATTERN_MODELS[p.code] ? current.slice(0, 1) : current, palette);
+                      return { ...next, pattern: p.code, bead: allowed ? c.bead : "argent" };
                     })
                   }
                   aria-pressed={active}

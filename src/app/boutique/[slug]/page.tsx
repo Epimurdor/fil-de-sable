@@ -6,6 +6,7 @@ import { ProductCard } from "@/components/product-card";
 import { ProductVisual } from "@/components/product-visual";
 import { formatPrice, leadTimeLabel } from "@/lib/format";
 import { getProductBySlug, getProducts } from "@/lib/products/queries";
+import { getStockedThreads } from "@/lib/threads/queries";
 import { kindFromCategorySlug, parseColors, parseOptionValues } from "@/lib/types";
 
 type Params = Promise<{ slug: string }>;
@@ -22,7 +23,11 @@ export default async function ProductPage({ params }: { params: Params }) {
   if (product.isCustomizable) redirect("/configurateur");
 
   const options = product.options.map((o) => ({ name: o.name, required: o.required, values: parseOptionValues(o.values) }));
-  const related = (await getProducts({ category: product.category.slug })).filter((p) => p.id !== product.id).slice(0, 4);
+  const [allRelated, threads] = await Promise.all([
+    getProducts({ category: product.category.slug }),
+    product.threadChoice ? getStockedThreads() : Promise.resolve([]),
+  ]);
+  const related = allRelated.filter((p) => p.id !== product.id).slice(0, 4);
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
@@ -49,14 +54,17 @@ export default async function ProductPage({ params }: { params: Params }) {
           <p className="mt-1 text-sm text-ink-3">{leadTimeLabel(product.leadTimeDays)}, puis expédié.</p>
 
           <div className="mt-8">
-            <AddToCartForm productId={product.id} basePriceCents={product.priceCents} options={options} />
+            <AddToCartForm productId={product.id} basePriceCents={product.priceCents} options={options} threads={threads} />
           </div>
 
           <p className="mt-10 leading-relaxed text-ink-2">{product.description}</p>
 
           <ul className="mt-8 space-y-1.5 border-t border-line pt-6 text-sm text-ink-2">
             <li>Noué à la main après ta commande.</li>
-            <li>Fil ciré, résiste à l'eau. Sans métal.</li>
+            <li>Tissé uniquement avec du fil de qualité premium, certifié résistant à l'eau et à l'usure. Perles en acier inoxydable, en laiton ou en pierres naturelles (améthyste, œil de tigre, apatite).</li>
+            {kindFromCategorySlug(product.category.slug) === "bracelet" && (
+              <li>Nœud coulissant : tu ajustes la taille du bracelet à ton poignet.</li>
+            )}
             <li>Suivi de la confection depuis ton compte.</li>
             <li>Livraison offerte dès 60 €.</li>
           </ul>

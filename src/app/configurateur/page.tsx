@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Configurator } from "@/components/configurator";
 import { getCustomizableProduct } from "@/lib/products/queries";
+import { getStockedThreads } from "@/lib/threads/queries";
 
 export const metadata: Metadata = {
   title: "Compose ton bracelet",
@@ -8,7 +9,7 @@ export const metadata: Metadata = {
 };
 
 export default async function ConfiguratorPage() {
-  const product = await getCustomizableProduct();
+  const [product, threads] = await Promise.all([getCustomizableProduct(), getStockedThreads()]);
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
@@ -18,8 +19,8 @@ export default async function ConfiguratorPage() {
         petites irrégularités qui vont avec.
       </p>
       <div className="mt-10">
-        {product ? (
-          <Configurator basePriceCents={product.priceCents} leadTimeDays={product.leadTimeDays} />
+        {product && threads.length > 0 ? (
+          <Configurator basePriceCents={product.priceCents} leadTimeDays={product.leadTimeDays} threads={threads} />
         ) : (
           <p className="rounded-md border border-dashed border-line-2 p-8 text-center text-ink-3">
             Le configurateur revient très vite.

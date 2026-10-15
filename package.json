@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "prisma generate && next dev",
+    "dev": "prisma generate && next dev --webpack",
     "build": "prisma generate && next build --webpack && node scripts/check-static-paths.mjs",
     "start": "next start",
     "lint": "eslint",

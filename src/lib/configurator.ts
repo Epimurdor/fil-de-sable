@@ -1,8 +1,9 @@
 import { z } from "zod";
 import type { CustomConfig } from "./types";
 
-// Fils disponibles dans le configurateur (coton ciré).
-export const THREAD_PALETTE = [
+// Les fils proposés viennent du stock de l'atelier (table ThreadColor, /admin/fils).
+// Ancienne palette fixe : ne sert plus qu'à nommer les fils des paniers et commandes passés avant le stock.
+const LEGACY_THREADS = [
   { code: "ardoise", name: "Bleu ardoise", hex: "#4F6478" },
   { code: "taupe", name: "Taupe", hex: "#5E4B4F" },
   { code: "sable", name: "Sable", hex: "#E8D5B5" },
@@ -38,6 +39,27 @@ export const PATTERN_MODELS: Partial<Record<string, string>> = {
   vagues: "/models/quartz-rose/bracelet.gltf", // modèle Meshy texturé (scripts/build-textured-model.mjs)
 };
 
+// Photos recolorables par motif : le masque (scripts/build-photo-masks.mjs) dit où est le fil ; seul le fil
+// change de couleur, les perles et le décor restent ceux de la photo. refLum et contrast sont affichés par le script.
+export type PatternPhoto = { src: string; mask: string; refLum: number; contrast: number; beads: string };
+
+export const PATTERN_PHOTOS: Partial<Record<string, PatternPhoto>> = {
+  arabesques: {
+    src: "/images/produits/bracelet-atelier-1.jpg",
+    mask: "/images/produits/bracelet-atelier-1.masque.png",
+    refLum: 0.0289,
+    contrast: 0.8,
+    beads: "perles nacrées",
+  },
+  vagues: {
+    src: "/images/produits/bracelet-atelier-2.jpg",
+    mask: "/images/produits/bracelet-atelier-2.masque.png",
+    refLum: 0.0108,
+    contrast: 0.55,
+    beads: "perles de quartz rose",
+  },
+};
+
 export function beadsForPattern(pattern: string) {
   return PATTERN_MODELS[pattern] ? BEADS.filter((b) => b.metal) : BEADS;
 }
@@ -57,15 +79,18 @@ export const SIZES = [
 export const EXTRA_THREAD_CENTS = 100; // chaque couleur de fil supplémentaire
 
 const hexRegex = /^#[0-9a-f]{6}$/i;
-const allowedHex = new Set<string>(THREAD_PALETTE.map((t) => t.hex.toLowerCase()));
 
+// Forme seulement : le serveur vérifie ensuite que chaque code est une bobine en stock
+// et remplace threads / threadLabels par les valeurs de la base (src/lib/cart/actions.ts).
 export const customConfigSchema = z
   .object({
-    threads: z
-      .array(z.string().regex(hexRegex))
+    threads: z.array(z.string().regex(hexRegex)).max(3),
+    threadCodes: z
+      .array(z.string().regex(/^[a-z0-9-]{1,60}$/))
       .min(1, "Choisis au moins une couleur de fil.")
       .max(3, "Trois couleurs maximum.")
-      .refine((arr) => arr.every((h) => allowedHex.has(h.toLowerCase())), "Couleur de fil inconnue."),
+      .refine((arr) => new Set(arr).size === arr.length, "Chaque fil ne compte qu'une fois."),
+    threadLabels: z.array(z.string().max(120)).max(3).optional(),
     bead: z.enum(BEADS.map((b) => b.code) as [string, ...string[]]),
     size: z.enum(SIZES.map((s) => s.code) as [string, ...string[]]),
     pattern: z.enum(PATTERNS.map((p) => p.code) as [string, ...string[]]),
@@ -75,7 +100,7 @@ export const customConfigSchema = z
     message: "Ce motif se fait avec des perles dorées ou argentées.",
     path: ["bead"],
   })
-  .refine((c) => !PATTERN_MODELS[c.pattern] || c.threads.length === 1, {
+  .refine((c) => !PATTERN_MODELS[c.pattern] || c.threadCodes.length === 1, {
     message: "Ce motif se noue d'un seul fil.",
     path: ["threads"],
   });
@@ -86,24 +111,28 @@ export function customPriceCents(basePriceCents: number, config: CustomConfig): 
   return basePriceCents + (bead?.priceDeltaCents ?? 0) + extraThreads * EXTRA_THREAD_CENTS;
 }
 
-export function threadName(hex: string): string {
-  return THREAD_PALETTE.find((t) => t.hex.toLowerCase() === hex.toLowerCase())?.name ?? hex;
+function legacyThreadName(hex: string): string {
+  return LEGACY_THREADS.find((t) => t.hex.toLowerCase() === hex.toLowerCase())?.name ?? hex;
 }
 
 export function describeConfig(config: CustomConfig): string[] {
   const bead = BEADS.find((b) => b.code === config.bead);
   const pattern = PATTERNS.find((p) => p.code === config.pattern);
   const size = SIZES.find((s) => s.code === config.size);
+  const threads = config.threadLabels?.length ? config.threadLabels : config.threads.map(legacyThreadName);
   return [
-    `Fils : ${config.threads.map(threadName).join(", ")}`,
+    `Fils : ${threads.join(", ")}`,
     `Perle : ${bead?.name ?? config.bead}`,
     `Motif : ${pattern?.name ?? config.pattern}`,
     `Taille : ${size?.label ?? config.size}`,
   ];
 }
 
+// Sans fil : le configurateur présélectionne la première bobine en stock.
 export const DEFAULT_CONFIG: CustomConfig = {
-  threads: ["#4F6478"],
+  threads: [],
+  threadCodes: [],
+  threadLabels: [],
   bead: "argent",
   size: "M",
   pattern: "arabesques",

@@ -8,6 +8,7 @@ import { getOrCreateCartId, getUsableCartId } from "./cart";
 import { productInclude } from "@/lib/products/queries";
 import { resolveOptions } from "@/lib/products/pricing";
 import { customConfigSchema, customPriceCents } from "@/lib/configurator";
+import { THREAD_OPTION, threadLabel } from "@/lib/threads/labels";
 import type { SelectedOptions } from "@/lib/types";
 
 export type CartActionState = { error?: string };
@@ -55,6 +56,18 @@ export async function addToCart(_prev: CartActionState, formData: FormData): Pro
   const resolved = resolveOptions(product, selectedFromForm(formData));
   if (!resolved.ok) return { error: resolved.error };
 
+  // « Couleur du fil au choix » : une bobine en stock est obligatoire dès que l'atelier en a ;
+  // son libellé est figé dans les options de la ligne (panier, commande, admin).
+  if (product.threadChoice) {
+    const code = String(formData.get("thread") ?? "");
+    const thread = code ? await prisma.threadColor.findFirst({ where: { code, inStock: true } }) : null;
+    if (thread) {
+      resolved.selected[THREAD_OPTION] = threadLabel(thread);
+    } else if (await prisma.threadColor.count({ where: { inStock: true } })) {
+      return { error: code ? "Cette couleur de fil n'est plus disponible. Choisis-en une autre." : "Choisis la couleur du fil." };
+    }
+  }
+
   const cartId = await getOrCreateCartId();
   const selectedJson = JSON.stringify(resolved.selected);
   const existing = await prisma.cartItem.findFirst({
@@ -97,6 +110,17 @@ export async function addCustomBracelet(_prev: CartActionState, formData: FormDa
   const product = await prisma.product.findFirst({ where: { isActive: true, isCustomizable: true } });
   if (!product) return { error: "Le bracelet sur mesure n'est pas disponible pour le moment." };
 
+  // Seules les bobines en stock sont acceptées ; couleurs et libellés viennent de la base, pas du navigateur.
+  const codes = parsed.data.threadCodes;
+  const stocked = await prisma.threadColor.findMany({ where: { code: { in: codes }, inStock: true } });
+  const threads = codes.map((c) => stocked.find((t) => t.code === c));
+  if (threads.some((t) => !t)) return { error: "Un des fils choisis n'est plus disponible. Recharge la page pour voir les fils du moment." };
+  const config = {
+    ...parsed.data,
+    threads: threads.map((t) => t!.hex),
+    threadLabels: threads.map((t) => threadLabel(t!)),
+  };
+
   const cartId = await getOrCreateCartId();
   await prisma.cartItem.create({
     data: {
@@ -104,8 +128,8 @@ export async function addCustomBracelet(_prev: CartActionState, formData: FormDa
       productId: product.id,
       quantity: 1,
       selectedOptions: "{}",
-      customConfig: JSON.stringify(parsed.data),
-      unitPriceCents: customPriceCents(product.priceCents, parsed.data),
+      customConfig: JSON.stringify(config),
+      unitPriceCents: customPriceCents(product.priceCents, config),
     },
   });
   await prisma.cart.update({ where: { id: cartId }, data: { updatedAt: new Date() } });

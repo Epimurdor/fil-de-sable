@@ -59,6 +59,7 @@ model Product {
   isActive       Boolean         @default(true)
   isFeatured     Boolean         @default(false)
   isCustomizable Boolean         @default(false) // produit du configurateur
+  threadChoice   Boolean         @default(true) // le client choisit la couleur du fil parmi les bobines en stock
   sortOrder      Int             @default(0)
   categoryId     String
   category       Category        @relation(fields: [categoryId], references: [id])
@@ -69,6 +70,23 @@ model Product {
   updatedAt      DateTime        @updatedAt
 
   @@index([categoryId])
+}
+
+// Coloris de fil Linhasita (LINHASITA_COULEURS.md, migration 20261015140000_thread_stock).
+// inStock : bobine présente à l'atelier, donc proposée dans le configurateur.
+model ThreadColor {
+  code      String  @id // ex. encerado-224, pe-salmao, bonderizado-224
+  range     String // encerado | pe | bonderizado
+  ref       String? // numéro de la cartelle
+  name      String? // nom officiel, rare
+  shade     String // teinte déduite du HEX
+  family    String // Beige, Bleu…
+  hex       String
+  note      String?
+  inStock   Boolean @default(false)
+  sortOrder Int     @default(0)
+
+  @@index([inStock])
 }
 
 model ProductOption {

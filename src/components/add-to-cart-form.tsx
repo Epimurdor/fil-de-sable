@@ -6,6 +6,7 @@ import { SubmitButton } from "@/components/forms/submit-button";
 import { addToCart, type CartActionState } from "@/lib/cart/actions";
 import { cn } from "@/lib/cn";
 import { formatPrice } from "@/lib/format";
+import { THREAD_OPTION, threadLabel, type ThreadOption } from "@/lib/threads/labels";
 import type { OptionValue } from "@/lib/types";
 
 type Option = { name: string; required: boolean; values: OptionValue[] };
@@ -14,12 +15,16 @@ export function AddToCartForm({
   productId,
   basePriceCents,
   options,
+  threads = [],
 }: {
   productId: string;
   basePriceCents: number;
   options: Option[];
+  threads?: ThreadOption[]; // bobines en stock si l'article a « Couleur du fil au choix », sinon vide
 }) {
   const [state, action] = useActionState<CartActionState, FormData>(addToCart, {});
+  const [thread, setThread] = useState<string | null>(null);
+  const picked = threads.find((t) => t.code === thread);
   const [selected, setSelected] = useState<Record<string, string>>(() =>
     Object.fromEntries(options.map((o) => [o.name, o.values[0]?.value ?? ""])),
   );
@@ -32,6 +37,42 @@ export function AddToCartForm({
   return (
     <form action={action} className="space-y-6">
       <input type="hidden" name="productId" value={productId} />
+
+      {threads.length > 0 && (
+        <fieldset>
+          <legend className="label">
+            {THREAD_OPTION}
+            <span className="ml-2 font-normal text-ink-3">{picked ? threadLabel(picked) : "à choisir parmi les bobines de l'atelier"}</span>
+          </legend>
+          <div className="flex flex-wrap gap-2">
+            {threads.map((t) => {
+              const active = thread === t.code;
+              return (
+                <label
+                  key={t.code}
+                  title={threadLabel(t)}
+                  className={cn(
+                    "grid h-9 w-9 cursor-pointer place-items-center rounded-full border-2 transition",
+                    active ? "border-ink" : "border-transparent hover:border-line-2",
+                  )}
+                >
+                  <input
+                    type="radio"
+                    name="thread"
+                    value={t.code}
+                    checked={active}
+                    onChange={() => setThread(t.code)}
+                    className="sr-only"
+                    required
+                  />
+                  <span className="h-7 w-7 rounded-full ring-1 ring-ink/15" style={{ backgroundColor: t.hex }} />
+                  <span className="sr-only">{threadLabel(t)}</span>
+                </label>
+              );
+            })}
+          </div>
+        </fieldset>
+      )}
 
       {options.map((o) => (
         <fieldset key={o.name}>

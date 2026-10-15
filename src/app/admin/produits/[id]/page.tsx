@@ -50,6 +50,7 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
             isActive: product.isActive,
             isFeatured: product.isFeatured,
             isCustomizable: product.isCustomizable,
+            threadChoice: product.threadChoice,
           }}
         />
       </div>

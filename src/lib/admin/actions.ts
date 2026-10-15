@@ -35,6 +35,7 @@ const productSchema = z.object({
   isActive: z.string().optional(),
   isFeatured: z.string().optional(),
   isCustomizable: z.string().optional(),
+  threadChoice: z.string().optional(),
 });
 
 function toCents(price: string): number {
@@ -76,6 +77,7 @@ export async function saveProduct(_prev: AdminState, formData: FormData): Promis
     isActive: d.isActive === "on",
     isFeatured: d.isFeatured === "on",
     isCustomizable: d.isCustomizable === "on",
+    threadChoice: d.threadChoice === "on",
   };
 
   const product = d.id
@@ -101,6 +103,22 @@ export async function deleteProduct(formData: FormData): Promise<void> {
   if (id) await prisma.product.deleteMany({ where: { id } });
   revalidatePath("/", "layout");
   redirect("/admin/produits");
+}
+
+// Stock de fil : les cases cochées (name="stock") deviennent les seules bobines proposées au configurateur.
+export async function saveThreadStock(_prev: AdminState, formData: FormData): Promise<AdminState> {
+  await requireAdmin();
+  const codes = [...new Set(formData.getAll("stock").map(String))].filter((c) => /^[a-z0-9-]{1,60}$/.test(c));
+  if (codes.length > 1000) return { error: "Trop de bobines cochées." };
+
+  const [, stocked] = await prisma.$transaction([
+    prisma.threadColor.updateMany({ where: { inStock: true, code: { notIn: codes } }, data: { inStock: false } }),
+    prisma.threadColor.updateMany({ where: { code: { in: codes } }, data: { inStock: true } }),
+  ]);
+
+  // Configurateur et fiches articles (« Couleur du fil ») lisent le stock.
+  revalidatePath("/", "layout");
+  return { success: `Stock enregistré : ${codes.length === 0 ? "aucune bobine" : `${codes.length} bobine${codes.length > 1 ? "s" : ""}`} proposée${codes.length > 1 ? "s" : ""} au configurateur.${stocked.count < codes.length ? " (Des coloris inconnus ont été ignorés.)" : ""}` };
 }
 
 export async function updateOrderStatus(_prev: AdminState, formData: FormData): Promise<AdminState> {

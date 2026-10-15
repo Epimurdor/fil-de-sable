@@ -1,6 +1,6 @@
 ---
 name: suivi-correctifs
-description: Tient à jour SUIVI-CORRECTIFS.md, le journal des correctifs et bugfix de la boutique Fil de Sable. À utiliser après chaque correctif ou bugfix (même petit), quand un bug est signalé mais pas encore traité, quand un correctif est déployé sur Wasmer, ou quand l'utilisateur demande de noter, journaliser, tracer ou mettre à jour le suivi.
+description: Tient à jour SUIVI-CORRECTIFS.md, le journal des correctifs et bugfix de la boutique Fil du Sable. À utiliser après chaque correctif ou bugfix (même petit), quand un bug est signalé mais pas encore traité, quand un correctif est mis en ligne (push sur main, Render), ou quand l'utilisateur demande de noter, journaliser, tracer ou mettre à jour le suivi.
 ---
 
 # Remplir SUIVI-CORRECTIFS.md
@@ -16,7 +16,7 @@ Tout est rédigé en français, de façon courte et factuelle.
 | L'utilisateur signale un bug qu'on ne traite pas tout de suite | Ajouter une puce dans **À faire / signalés** |
 | On commence à corriger un bug | Créer l'entrée du journal avec le statut 🟡 (et retirer la puce de « À faire » si elle existe) |
 | Le correctif est fait et vérifié en local | Passer l'entrée en ✅ et remplir Cause / Correctif / Fichiers / Vérification |
-| Le correctif est mis en ligne (skill `deploy-wasmer`) | Passer en 🚀 et ajouter la date de déploiement dans **Notes** |
+| Le correctif est mis en ligne (push sur main, Render) | Passer en 🚀 et ajouter la date de déploiement dans **Notes** |
 | Le correctif est bloqué (info manquante, dépendance…) | Passer en ⏸️ et dire pourquoi dans **Notes** |
 
 N'attends pas qu'on te le demande : mets le fichier à jour à la fin de chaque correctif, dans le même

@@ -1,8 +1,8 @@
-# Fil de Sable
+# Fil du Sable
 
 Boutique en ligne de bijoux en macramé (bracelets, bagues, colliers), noués à la main **sur commande**.
 
-Next.js 16 (App Router) · TypeScript · Tailwind v4 · Prisma 6 (sans moteur natif, adapter `pg`) · PostgreSQL · Stripe Checkout · hébergé sur Wasmer Edge.
+Next.js 16 (App Router) · TypeScript · Tailwind v4 · Prisma 6 (sans moteur natif, adapter `pg`) · PostgreSQL (Supabase) · Stripe Checkout · hébergé sur Render.
 
 ## Démarrer
 
@@ -15,7 +15,7 @@ CREATE DATABASE fildesable OWNER fildesable;
 ```
 
 ```bash
-npm install           # le client Prisma est généré par dev/build/typecheck (pas de postinstall : build Wasmer)
+npm install           # le client Prisma est généré par dev/build/typecheck (pas de postinstall)
 cp .env.example .env  # puis renseigne DATABASE_URL, SEED_ADMIN_EMAIL et SEED_ADMIN_PASSWORD
 npm run db:migrate       # applique les migrations et lance le seed
 npm run dev           # http://localhost:3000
@@ -30,14 +30,20 @@ le mot de passe admin par celui de `.env` et ferme ses sessions ouvertes.
 
 ## Sécurité
 
-- **Authentification** : scrypt + sel, comparaison en temps constant, sessions opaques en base (cookie `httpOnly`, `SameSite=Lax`), jeton renouvelé à chaque connexion.
+Le détail de l'audit (couche par couche, risques acceptés, suites) est dans [`AUDIT-SECURITE.md`](AUDIT-SECURITE.md).
+
+- **Authentification** : scrypt + sel, comparaison en temps constant, mots de passe courants refusés (`src/lib/auth/password-policy.ts`), sessions opaques en base : le cookie porte le jeton, la base n'en garde que l'empreinte SHA-256. Cookies `httpOnly`, `SameSite=Lax`, `Secure` et préfixe `__Host-` en production (`src/lib/security/cookies.ts`), jeton renouvelé à chaque connexion.
 - **Limitation de débit** (`src/lib/security/rate-limit.ts`) : connexion 5/min par IP et verrouillage 15 min après 5 échecs sur un e-mail, inscription 5/15 min par IP, commandes 10/10 min par compte, ajouts au panier 30/min par IP. Le store est en mémoire : en multi-instances ou serverless, le remplacer par Redis (ex. `@upstash/ratelimit`). L'IP provient de `X-Forwarded-For` : l'app doit tourner derrière un proxy qui écrase cet en-tête (Vercel, Nginx…).
 - **Paiement simulé** : page et Server Action désactivées dès que `NODE_ENV=production` ou `PAYMENT_PROVIDER` ≠ `mock`.
-- **Stripe** : seule la route `/api/webhooks/stripe`, après vérification de la signature (`STRIPE_WEBHOOK_SECRET`) et du montant encaissé, passe une commande en « payée ». Le retour navigateur (`success_url`) n'est jamais une preuve de paiement. Les URLs de retour viennent de `APP_URL`, pas de l'en-tête `Host`.
+- **Stripe** : seule la route `/api/webhooks/stripe`, après vérification de la signature (`STRIPE_WEBHOOK_SECRET`) et du montant encaissé, passe une commande en « payée ». Corps lu en flux et plafonné à 512 Ko. Le retour navigateur (`success_url`) n'est jamais une preuve de paiement. Les URLs de retour viennent de `APP_URL`, pas de l'en-tête `Host`.
+- **Server Actions** : authentification et propriété revérifiées dans chaque action, corps limité à 200 Ko (`experimental.serverActions.bodySizeLimit`), modules d'accès aux données marqués `server-only`.
 - **Panier** : un panier rattaché à un compte n'est lisible, modifiable ou fusionnable que par ce compte.
 - **Commandes** : numéros à suffixe aléatoire (`FDS-2026-X8K9MQ`), non énumérables.
-- **Photos produit** : uniquement des chemins locaux `/images/…` (jpg, png, webp, avif).
-- **En-têtes** : CSP stricte (hors `'unsafe-inline'` pour les scripts d'hydratation), HSTS en production, COOP/CORP, `X-Frame-Options: DENY`, pas de `X-Powered-By`.
+- **Photos produit** : uniquement des chemins locaux `/images/…` (jpg, png, webp, avif) ; l'optimiseur d'images (`/_next/image`) n'accepte que ces chemins (`images.localPatterns`), jamais de SVG ni d'URL externe.
+- **En-têtes** : CSP à nonce posée par `src/middleware.ts` (runtime edge) : un nonce aléatoire par requête remplace `'unsafe-inline'` dans `script-src` (`'strict-dynamic'`, `script-src-attr 'none'`) ; toutes les pages sont rendues à la demande, condition du nonce. Les directives sont dans `src/lib/security/csp.ts`. `next.config.ts` garde une CSP de repli (avec `'unsafe-inline'`) pour les chemins et hébergeurs où le middleware ne s'exécute pas ; quand il s'exécute, son en-tête remplace celui de la config (une seule CSP envoyée). La convention `middleware.ts` est dépréciée dans Next 16 (avertissement au build) : migration vers `proxy.ts` à prévoir. HSTS en production, COOP/CORP, `X-Frame-Options: DENY`, `Permissions-Policy`, pas de `X-Powered-By`.
+- **Dépendances** : `npm audit` et `npm outdated` avant chaque mise en ligne ; les scripts d'installation des paquets sont filtrés par `allowScripts` (`package.json`). Next.js doit rester ≥ 16.4.1 (avis de sécurité du 14/10/2026 : RCE dans l'optimisation d'images, DoS des Server Actions).
+- **Base de données** : connexion TLS ; `DB_SSL_CA` (certificat racine PEM) active la vérification de la chaîne quand l'hébergeur la fournit.
+- **Divers** : `public/robots.txt` exclut les pages privées des moteurs ; `public/.well-known/security.txt` indique le contact sécurité.
 
 ## Ce que fait la v1
 
@@ -83,18 +89,40 @@ public/images/     photos produits
    `stripe listen --forward-to localhost:3000/api/webhooks/stripe`. Copie le `whsec_…` affiché dans `STRIPE_WEBHOOK_SECRET`.
 3. `PAYMENT_PROVIDER="stripe"`, relance `npm run dev`, commande et paie avec la carte de test `4242 4242 4242 4242` (date future, CVC quelconque).
 
-## Déployer sur Wasmer Edge
+## Héberger sur Render (avec Supabase)
 
-La configuration est dans [`app.yaml`](app.yaml) : base PostgreSQL managée en région `fr-roub1`, `PAYMENT_PROVIDER=stripe`.
-Le support Node.js de Wasmer Edge (Edge.js) est en **bêta** : teste chaque étape sur l'URL `*.wasmer.app` avant d'ouvrir la boutique.
+La configuration est dans [`render.yaml`](render.yaml) : service web Node, offre gratuite, région Francfort,
+`npm ci --include=dev && npm run build` puis `npm run start`. Render redéploie à chaque push sur `main`.
 
-1. **CLI** (PowerShell) : `iwr https://win.wasmer.io -useb | iex`, puis `wasmer login`.
-2. **Premier déploiement** : `wasmer deploy` à la racine du projet. Choisis ton espace ; Wasmer détecte Next.js, build et crée la base Postgres.
-   `wasmer app info` donne l'URL publique : ajoute-la dans `app.yaml` (`env:` → `APP_URL: https://…`).
-3. **Base de production** : récupère les identifiants avec `wasmer app database list --with-password`, puis depuis ton poste :
+1. **Base** : migrations appliquées sur Supabase depuis ton poste (voir « Base Supabase » ci-dessous).
+   L'offre gratuite de Render n'a pas d'étape de pré-déploiement : `npm run db:deploy` reste à lancer à la main
+   avec `DATABASE_URL` = `PROD_MIGRATE_URL` avant de pousser une nouvelle migration.
+2. **Blueprint** : Render → **New → Blueprint**, choisis le dépôt GitHub. Render lit `render.yaml` et demande les variables :
+   `DATABASE_URL` (= `PROD_DATABASE_URL`, pooler port 6543), `APP_URL` (ex. `https://fil-de-sable.onrender.com`),
+   `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, et `DB_SSL_CA` (facultatif).
+3. **Stripe** : dans le tableau de bord Stripe (mode test d'abord), **Développeurs → Webhooks → Ajouter un endpoint** :
+   `https://TON-URL/api/webhooks/stripe`, événements `checkout.session.completed`,
+   `checkout.session.async_payment_succeeded` et `checkout.session.async_payment_failed`. Copie la clé `sk_test_…` et le
+   `whsec_…` dans les variables Render. Sans clés Stripe, le site s'affiche mais le paiement échoue (le paiement simulé
+   est désactivé en production). Passage en réel : clés `sk_live_…` et endpoint webhook en mode live.
+
+Limites de l'offre gratuite : le service s'endort après 15 min sans visite (réveil d'environ 30 à 60 s) ; le limiteur de
+débit en mémoire est remis à zéro à chaque réveil.
+
+## Base Supabase
+
+L'app est du Postgres standard : `src/lib/db.ts` se connecte via `DATABASE_URL`.
+
+1. **Projet** : Supabase, projet `opieomqlhsqviteiqxtb` (région `eu-west-1`). Le MCP Supabase est déclaré dans
+   [`.mcp.json`](.mcp.json) (connexion OAuth à la première utilisation).
+2. **Chaînes de connexion** (Supabase → *Connect*), avec `?sslmode=require`, dans `.env.production.local` (jamais versionné) :
+   - `PROD_DATABASE_URL` : pooler en mode **transaction**, port **6543** (l'app, variable Render `DATABASE_URL`) ;
+   - `PROD_MIGRATE_URL` : connexion directe `db.REF.supabase.co` (IPv6) ou pooler en mode **session**, port **5432**
+     (`prisma migrate`, qui ne marche pas en mode transaction).
+3. **Schéma et données** :
 
    ```powershell
-   $env:DATABASE_URL = "postgresql://UTILISATEUR:MOTDEPASSE@HOTE:PORT/BASE?sslmode=require"
+   $env:DATABASE_URL = "<PROD_MIGRATE_URL>"
    $env:SEED_ADMIN_EMAIL = "ton-adresse@exemple.fr"
    $env:SEED_ADMIN_PASSWORD = "un-mot-de-passe-de-prod-different-du-dev"
    npm run db:deploy
@@ -102,17 +130,11 @@ Le support Node.js de Wasmer Edge (Edge.js) est en **bêta** : teste chaque éta
    Remove-Item Env:DATABASE_URL, Env:SEED_ADMIN_PASSWORD
    ```
 
-4. **Stripe** : dans le tableau de bord Stripe (mode test d'abord), **Développeurs → Webhooks → Ajouter un endpoint** :
-   `https://TON-URL/api/webhooks/stripe`, événements `checkout.session.completed`,
-   `checkout.session.async_payment_succeeded` et `checkout.session.async_payment_failed`. Puis :
-
-   ```powershell
-   wasmer app secrets create STRIPE_SECRET_KEY "sk_test_..."
-   wasmer app secrets create STRIPE_WEBHOOK_SECRET "whsec_..."
-   ```
-
-5. **Redéploie** (`wasmer deploy`) pour prendre en compte `APP_URL` et les secrets, puis passe une commande test avec la carte `4242…`.
-6. **Passage en réel** : refais l'étape 4 avec les clés `sk_live_…` et un endpoint webhook en mode live.
+4. **RLS** : la migration `20261015160000_enable_rls` active le RLS, sans politique, sur toutes les tables : l'API Data
+   de Supabase (clé `anon`, que l'app n'utilise pas) n'y lit plus rien. Prisma se connecte avec le rôle propriétaire
+   des tables, non soumis au RLS. Toute nouvelle table doit recevoir le même `ENABLE ROW LEVEL SECURITY`.
+5. **TLS** : pour vérifier le certificat, télécharge le certificat racine (*Database Settings → SSL*) et mets-le dans `DB_SSL_CA`.
 
 Limites connues : le limiteur de débit est en mémoire, propre à chaque instance (passer à Redis si l'app monte en charge) ;
-la connexion à la base Wasmer est chiffrée mais sans vérification du certificat (autorité privée de Wasmer).
+la connexion à Supabase est chiffrée mais sans vérification du certificat tant que `DB_SSL_CA` n'est pas renseigné ;
+la CSP à nonce est dans `src/middleware.ts`, convention dépréciée dans Next 16 (à migrer vers `proxy.ts`).

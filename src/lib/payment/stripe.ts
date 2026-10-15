@@ -7,7 +7,7 @@ let client: Stripe | null = null;
 export function getStripe(): Stripe {
   const key = process.env.STRIPE_SECRET_KEY;
   if (!key) throw new Error("STRIPE_SECRET_KEY manquant.");
-  // Client HTTP fetch : portable (Node, Edge.js/Wasmer) sans dépendre du module http natif.
+  // Client HTTP fetch : portable (Node, edge) sans dépendre du module http natif.
   client ??= new Stripe(key, { httpClient: Stripe.createFetchHttpClient() });
   return client;
 }
@@ -15,7 +15,7 @@ export function getStripe(): Stripe {
 // URL publique du site : jamais déduite de l'en-tête Host (falsifiable).
 export function getAppUrl(): string {
   const raw = process.env.APP_URL;
-  if (!raw) throw new Error("APP_URL manquant (ex. https://fil-de-sable.wasmer.app).");
+  if (!raw) throw new Error("APP_URL manquant (ex. https://fil-de-sable.onrender.com).");
   const url = new URL(raw);
   if (process.env.NODE_ENV === "production" && url.protocol !== "https:") {
     throw new Error("APP_URL doit être en https en production.");

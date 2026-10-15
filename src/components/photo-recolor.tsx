@@ -1,16 +1,16 @@
 "use client";
 
 // Photo du bracelet dont le fil et les perles changent de couleur. Deux masques (scripts/build-photo-masks.mjs)
-// disent où sont le fil et les perles ; chaque pixel garde son ombre et son relief : sa luminance, rapportée à
-// celle du fil (refLum) ou des perles (beadRefLum) d'origine, module la couleur choisie (même principe que le
-// modèle 3D texturé). Le décor reste intact.
+// disent où sont le fil et les perles. Fil : le pixel « moyen » prend exactement le HEX de la bobine, les autres
+// gardent leur écart de clarté (ombres, reflets) en OKLab, sans dépasser la saturation du HEX (src/lib/color.ts).
+// Perles : leur luminance, rapportée à beadRefLum, module la teinte or ou argent. Le décor reste intact.
 import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/cn";
+import { dyeThread, hexToOklab, maskedMedian, srgb8Lightness, toLinear } from "@/lib/color";
 import { PHOTO_METALS, type BeadMetal, type PatternPhoto } from "@/lib/configurator";
 
 const MAX_WIDTH = 900; // assez net pour l'aperçu, recoloration en quelques millisecondes
 
-const toLinear = (c: number) => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4);
 // Table linéaire → sRGB 8 bits (4096 pas) : évite un pow() par pixel et par canal.
 const TO_SRGB = Array.from({ length: 4097 }, (_, i) => {
   const l = i / 4096;
@@ -24,7 +24,8 @@ type Prepared = {
   height: number;
   original: Uint8ClampedArray;
   thread: Float32Array; // couverture du masque du fil (0 à 1)
-  shade: Float32Array; // relief du fil, prêt à multiplier la couleur
+  threadL: Float32Array; // clarté OKLab des pixels du fil
+  refL: number; // clarté médiane du fil d'origine
   bead: Float32Array; // couverture du masque des perles
   beadLum: Float32Array; // luminance des perles rapportée à beadRefLum
 };
@@ -78,21 +79,24 @@ export function PhotoRecolor({
 
         const n = width * height;
         const thread = new Float32Array(n);
-        const shade = new Float32Array(n);
+        const threadL = new Float32Array(n);
         const bead = new Float32Array(n);
         const beadLum = new Float32Array(n);
         for (let i = 0; i < n; i++) {
           const t = threadData[i * 4] / 255;
           const b = beadData[i * 4] / 255;
           if (!t && !b) continue;
-          const lum =
-            0.2126 * toLinear(original[i * 4] / 255) + 0.7152 * toLinear(original[i * 4 + 1] / 255) + 0.0722 * toLinear(original[i * 4 + 2] / 255);
           thread[i] = t;
-          if (t) shade[i] = Math.min(3, lum / photo.refLum) ** photo.contrast;
+          if (t) threadL[i] = srgb8Lightness(original[i * 4], original[i * 4 + 1], original[i * 4 + 2]);
           bead[i] = b;
-          if (b) beadLum[i] = Math.min(4, lum / photo.beadRefLum);
+          if (b) {
+            const lum =
+              0.2126 * toLinear(original[i * 4] / 255) + 0.7152 * toLinear(original[i * 4 + 1] / 255) + 0.0722 * toLinear(original[i * 4 + 2] / 255);
+            beadLum[i] = Math.min(4, lum / photo.beadRefLum);
+          }
         }
-        setPrepared({ src: photo.src, data: { width, height, original, thread, shade, bead, beadLum } });
+        const refL = maskedMedian(threadL, thread);
+        setPrepared({ src: photo.src, data: { width, height, original, thread, threadL, refL, bead, beadLum } });
       })
       .catch(() => !cancelled && setPrepared({ src: photo.src, data: null }));
     return () => {
@@ -104,13 +108,13 @@ export function PhotoRecolor({
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas || !ready) return;
-    const { width, height, original, thread, shade, bead, beadLum } = ready;
+    const { width, height, original, thread, threadL, refL, bead, beadLum } = ready;
     canvas.width = width;
     canvas.height = height;
     const ctx = canvas.getContext("2d")!;
     const out = new ImageData(width, height);
     const px = out.data;
-    const t = hexToLinear(threadHex);
+    const target = hexToOklab(threadHex);
     const m = hexToLinear(PHOTO_METALS[metal].hex);
     const metalContrast = PHOTO_METALS[metal].contrast;
     for (let i = 0; i < width * height; i++) {
@@ -127,9 +131,10 @@ export function PhotoRecolor({
       // Perles : relief accentué, plafonné, et les reflets tirent vers le blanc.
       const k = b ? beadLum[i] ** metalContrast : 0;
       const glint = Math.max(0, k - 1.2) * 0.25;
+      const dyed = a ? dyeThread(target, threadL[i], refL) : null;
       for (let c = 0; c < 3; c++) {
         let v = original[o + c];
-        if (a) v = v * (1 - a) + srgb(t[c] * shade[i]) * a;
+        if (dyed) v = v * (1 - a) + srgb(dyed[c]) * a;
         if (b) v = v * (1 - b) + srgb(m[c] * Math.min(k, 1.2) + glint) * b;
         px[o + c] = v;
       }

@@ -3,7 +3,7 @@ import { PrismaPg } from "@prisma/adapter-pg";
 
 type PoolConfig = ConstructorParameters<typeof PrismaPg>[0];
 
-// TLS vers la base. Par défaut (base managée Wasmer, certificat d'une autorité privée) : chiffré mais
+// TLS vers la base. Par défaut (Supabase, certificat d'une autorité privée) : chiffré mais
 // sans vérification de la chaîne. Si l'hébergeur fournit son certificat racine, le passer dans
 // DB_SSL_CA (PEM, sauts de ligne réels ou « \n ») rétablit la vérification complète du serveur.
 function sslConfig(): { ca: string; rejectUnauthorized: true } | { rejectUnauthorized: false } {
@@ -11,28 +11,14 @@ function sslConfig(): { ca: string; rejectUnauthorized: true } | { rejectUnautho
   return ca ? { ca, rejectUnauthorized: true } : { rejectUnauthorized: false };
 }
 
-// Wasmer Edge n'injecte pas DATABASE_URL mais DB_HOST, DB_PORT, DB_NAME, DB_USERNAME, DB_PASSWORD.
-// Ailleurs (dev local, migrations depuis un poste) : DATABASE_URL classique.
+// DATABASE_URL : Postgres local en dev ; en production (Render), pooler Supabase en mode transaction (port 6543).
 function poolConfig(): PoolConfig {
-  const { DB_HOST, DB_PORT, DB_NAME, DB_USERNAME, DB_PASSWORD } = process.env;
-  if (DB_HOST && DB_NAME && DB_USERNAME) {
-    return {
-      host: DB_HOST,
-      port: Number(DB_PORT) || 5432,
-      database: DB_NAME,
-      user: DB_USERNAME,
-      password: DB_PASSWORD,
-      // TLS obligatoire chez Wasmer (voir sslConfig).
-      ssl: sslConfig(),
-      max: 5,
-    };
-  }
-
   const raw = process.env.DATABASE_URL;
-  if (!raw) throw new Error("DATABASE_URL (ou DB_HOST/DB_NAME/DB_USERNAME/DB_PASSWORD) manquant.");
+  if (!raw) throw new Error("DATABASE_URL manquant.");
   const url = new URL(raw);
   // sslmode=require au sens libpq (et de la CLI Prisma) : chiffré, sans vérification de la chaîne.
-  // Le pilote pg l'interpréterait comme verify-full, ce qui échoue avec la base Wasmer.
+  // Le pilote pg l'interpréterait comme verify-full, ce qui échoue avec Supabase (autorité privée).
+  // DB_SSL_CA (certificat racine Supabase) rétablit la vérification.
   if (url.searchParams.get("sslmode") === "require") {
     url.searchParams.delete("sslmode");
     return { connectionString: url.toString(), ssl: sslConfig(), max: 5 };

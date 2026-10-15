@@ -1,4 +1,4 @@
-// Masques du fil pour les photos recolorables du configurateur (src/lib/photo-models.ts).
+// Masques du fil et des perles pour les photos recolorables du configurateur (PATTERN_PHOTOS, src/lib/configurator.ts).
 //
 //   node scripts/build-photo-masks.mjs [dossier-apercus]
 //
@@ -6,11 +6,12 @@
 // luminosité propres à la photo), puis seulement les grandes zones connexes (le bracelet est d'un
 // seul tenant, les taches du coquillage non). Le masque est adouci d'un pixel et écrit en PNG
 // niveaux de gris : blanc = fil (recoloré), noir = perles et décor (intacts).
-// Affiche aussi la luminance de référence du fil, à reporter dans src/lib/photo-models.ts.
-// Avec un dossier en argument, écrit des aperçus recolorés pour contrôler le masque à l'œil.
+// Affiche la luminance de référence des perles (beadRefLum, à reporter dans PATTERN_PHOTOS).
+// Avec un dossier en argument, écrit des aperçus recolorés (bobines réelles, pastille du HEX en coin) pour contrôler à l'œil.
 import path from "node:path";
 import fs from "node:fs";
 import sharp from "sharp";
+import { dyeThread, hexToOklab, maskedMedian, srgb8Lightness, toSrgb } from "../src/lib/color.ts";
 
 const root = path.resolve(import.meta.dirname, "..");
 const previewDir = process.argv[2];
@@ -20,7 +21,6 @@ const PHOTOS = [
     // Fil bleu-gris, perles nacrées et deux petites perles dorées, coquillage beige.
     src: "public/images/produits/bracelet-atelier-1.jpg",
     isThread: ({ h, s, v }) => h >= 180 && h <= 250 && s >= 0.14 && v <= 0.78,
-    contrast: 0.8,
     // Perles nacrées : claires et peu saturées (le coquillage, beige, est plus saturé).
     isBead: ({ s, v }) => s <= 0.2 && v >= 0.45,
     // Perles ratées par la détection (ombre, reflet bleuté) : [x, y, rayon] en pixels de la photo.
@@ -30,7 +30,6 @@ const PHOTOS = [
     // Fil prune très foncé, perles quartz rose, coquillage beige aux fissures brunes.
     src: "public/images/produits/bracelet-atelier-2.jpg",
     isThread: ({ h, s, v }) => (v <= 0.4 && h >= 230 && h <= 345 && s >= 0.06) || v <= 0.2,
-    contrast: 0.55,
     // Quartz rose : rose pâle (teinte rose / mauve), plus clair que le fil.
     isBead: ({ h, s, v }) => v >= 0.45 && s >= 0.04 && (h >= 260 || h <= 20),
     extraBeads: [[240, 1060, 62]],
@@ -192,19 +191,11 @@ for (const photo of PHOTOS) {
   // +1 pixel : les bords du fil (mi-fil, mi-fond) sont recolorés aussi, sinon un liseré de l'ancienne couleur reste.
   mask = dilate(mask, w, h);
 
-  // Luminance linéaire de référence du fil : médiane sur le masque.
-  const lums = [];
-  for (let i = 0; i < w * h; i += 7) {
-    if (mask[i]) lums.push(0.2126 * lin(data[i * 3] / 255) + 0.7152 * lin(data[i * 3 + 1] / 255) + 0.0722 * lin(data[i * 3 + 2] / 255));
-  }
-  lums.sort((a, b) => a - b);
-  const ref = lums[lums.length >> 1];
-
   const gray = Buffer.from(mask.map((m) => m * 255));
   const out = file.replace(/\.jpg$/, ".masque.png");
   await sharp(gray, { raw: { width: w, height: h, channels: 1 } }).blur(0.8).toColourspace("b-w").png({ compressionLevel: 9 }).toFile(out);
-  const coverage = ((lums.length * 7) / (w * h)) * 100;
-  console.log(`${path.basename(out)} : ${w}×${h}, fil ${coverage.toFixed(1)} % de l'image, luminance de référence ${ref.toFixed(4)}`);
+  const coverage = (mask.reduce((s, m) => s + m, 0) / (w * h)) * 100;
+  console.log(`${path.basename(out)} : ${w}×${h}, fil ${coverage.toFixed(1)} % de l'image`);
 
   // Masque des perles (recolorées en argent ou en doré selon le choix du client).
   const { mask: beadMask, beads } = detectBeads(data, mask, w, h, photo.isBead, photo.extraBeads);
@@ -225,17 +216,29 @@ for (const photo of PHOTOS) {
   if (previewDir) {
     fs.mkdirSync(previewDir, { recursive: true });
     const maskBlur = await sharp(out).extractChannel(0).raw().toBuffer();
-    for (const [name, hex] of [["corail", "#E4572E"], ["sable", "#D0AB63"], ["vert", "#2F613F"]]) {
-      const t = [1, 3, 5].map((k) => lin(parseInt(hex.slice(k, k + 2), 16) / 255));
+    // Même calcul que le navigateur (src/lib/color.ts) : le pixel médian du fil prend exactement le HEX.
+    const threadL = new Float32Array(w * h);
+    const cover = new Float32Array(w * h);
+    for (let i = 0; i < w * h; i++) {
+      cover[i] = maskBlur[i] / 255;
+      if (cover[i]) threadL[i] = srgb8Lightness(data[i * 3], data[i * 3 + 1], data[i * 3 + 2]);
+    }
+    const refL = maskedMedian(threadL, cover);
+    // Bobines réelles de la cartelle : 35 (terracotta), 224 (turquoise), 87 (vert foncé), 899 (rose), Palha (beige).
+    for (const [name, hex] of [["35", "#CE673B"], ["224", "#63A89E"], ["87", "#2F613F"], ["899", "#BE5982"], ["palha", "#CEA75B"]]) {
+      const target = hexToOklab(hex);
       const px = Buffer.alloc(w * h * 3);
       for (let i = 0; i < w * h; i++) {
-        const m = maskBlur[i] / 255;
-        const l = 0.2126 * lin(data[i * 3] / 255) + 0.7152 * lin(data[i * 3 + 1] / 255) + 0.0722 * lin(data[i * 3 + 2] / 255);
-        const k = Math.min(3, l / ref) ** photo.contrast;
+        const m = cover[i];
+        const dyed = m ? dyeThread(target, threadL[i], refL) : null;
         for (let c = 0; c < 3; c++) {
-          const dyed = Math.min(1, t[c] * k);
-          const srgb = dyed <= 0.0031308 ? dyed * 12.92 : 1.055 * dyed ** (1 / 2.4) - 0.055;
-          px[i * 3 + c] = Math.round(data[i * 3 + c] * (1 - m) + srgb * 255 * m);
+          px[i * 3 + c] = dyed ? Math.round(data[i * 3 + c] * (1 - m) + toSrgb(dyed[c]) * 255 * m) : data[i * 3 + c];
+        }
+      }
+      // Pastille du HEX en haut à gauche, pour comparer à l'œil.
+      for (let y = 20; y < 160; y++) {
+        for (let x = 20; x < 160; x++) {
+          for (let c = 0; c < 3; c++) px[(y * w + x) * 3 + c] = parseInt(hex.slice(1 + c * 2, 3 + c * 2), 16);
         }
       }
       const name2 = `${path.basename(file, ".jpg")}-${name}.jpg`;

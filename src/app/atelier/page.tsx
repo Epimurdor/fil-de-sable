@@ -31,8 +31,11 @@ export default function AtelierPage() {
               lettres quelques jours plus tard.
             </p>
             <p>
-              Le fil est un coton ou un polyester ciré selon les modèles. Les perles sont en verre, en pierre ou en bois. Pas de
-              métal qui noircit, rien qui gratte.
+              Le fil est un coton ou un polyester ciré selon les modèles, certifié résistant à l'eau et à l'usure. Les perles
+              sont en acier inoxydable ou en laiton, et les perles naturelles en améthyste, œil de tigre et apatite.
+            </p>
+            <p>
+              Tous les bracelets ont un nœud coulissant : tu ajustes la taille à ton poignet, sans fermoir.
             </p>
             <p>Un nœud un peu plus serré ici, une boucle un peu plus ronde là. C'est la signature, pas un défaut.</p>
           </div>

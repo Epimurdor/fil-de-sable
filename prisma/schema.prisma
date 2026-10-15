@@ -1,8 +1,8 @@
-// PostgreSQL en dev comme en prod (Wasmer Edge). Statuts et JSON stockes en texte, types cote TypeScript dans src/lib.
+// PostgreSQL en dev comme en prod (Supabase). Statuts et JSON stockes en texte, types cote TypeScript dans src/lib.
 
 generator client {
   provider   = "prisma-client-js"
-  // Client sans moteur Rust natif (driver adapter @prisma/adapter-pg) : indispensable sous WebAssembly (Wasmer Edge).
+  // Client sans moteur Rust natif (driver adapter @prisma/adapter-pg, connexion via src/lib/db.ts).
   engineType = "client"
 }
 

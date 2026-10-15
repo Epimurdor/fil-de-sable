@@ -1,0 +1,35 @@
+# Render Blueprint : Render → New → Blueprint → dépôt GitHub. Base : Supabase (voir README, « Base Supabase »).
+# Les variables "sync: false" sont demandées à la création, puis modifiables dans Environment.
+services:
+  - type: web
+    name: fil-de-sable
+    runtime: node
+    plan: free
+    # Francfort : la région Render la plus proche de Supabase (eu-west-1, Irlande).
+    region: frankfurt
+    branch: main
+    # --include=dev : prisma, typescript et tailwind servent au build.
+    buildCommand: npm ci --include=dev && npm run build
+    # next start écoute sur $PORT, fourni par Render.
+    startCommand: npm run start
+    healthCheckPath: /
+    envVars:
+      - key: NODE_VERSION
+        value: "24"
+      - key: NODE_ENV
+        value: production
+      # Pooler Supabase en mode transaction (port 6543, ?sslmode=require) : PROD_DATABASE_URL de .env.production.local.
+      - key: DATABASE_URL
+        sync: false
+      # Certificat racine Supabase (PEM), optionnel : active la vérification TLS de la base.
+      - key: DB_SSL_CA
+        sync: false
+      # URL publique du site, en https (ex. https://fil-de-sable.onrender.com).
+      - key: APP_URL
+        sync: false
+      - key: PAYMENT_PROVIDER
+        value: stripe
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false

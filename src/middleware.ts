@@ -7,11 +7,8 @@ import { buildContentSecurityPolicy } from "@/lib/security/csp";
 // d'hydratation inline). Condition nécessaire : toutes les pages sont rendues à la demande (le layout
 // racine lit les cookies), une page prérendue n'aurait pas de nonce.
 //
-// Pourquoi la convention `middleware.ts` (dépréciée dans Next 16, avertissement au build) et non
-// `proxy.ts` : chez Wasmer, le serveur de next-bundle 1.0.0 n'exécute que les middlewares en runtime
-// edge, et un proxy.ts tourne toujours en Node (il serait ignoré sans erreur, et la CSP de repli de
-// next.config.ts resterait seule). Donc runtime edge et APIs web uniquement (pas de node:crypto).
-// Le jour où next-bundle exécute les proxys Node : renommer en proxy.ts et exporter `proxy`.
+// Convention `middleware.ts` (dépréciée dans Next 16, avertissement au build), runtime edge et APIs web
+// uniquement (pas de node:crypto). Migration possible vers `proxy.ts` (exporter `proxy`, runtime Node).
 //
 // L'en-tête posé ici remplace la CSP de repli de next.config.ts (même nom d'en-tête) ; les autres
 // en-têtes de sécurité (HSTS, X-Frame-Options, COOP/CORP…) restent dans next.config.ts.

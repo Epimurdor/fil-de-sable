@@ -39,25 +39,21 @@ export const PATTERN_MODELS: Partial<Record<string, string>> = {
   vagues: "/models/quartz-rose/bracelet.gltf", // modèle Meshy texturé (scripts/build-textured-model.mjs)
 };
 
-// Photos recolorables par motif : le masque (scripts/build-photo-masks.mjs) dit où est le fil ; seul le fil
-// change de couleur, les perles et le décor restent ceux de la photo. refLum et contrast sont affichés par le script.
-// beadMask / beadRefLum : les perles de la photo, repeintes en or ou en argent selon le choix du client.
-export type PatternPhoto = { src: string; mask: string; refLum: number; contrast: number; beadMask: string; beadRefLum: number };
+// Photos recolorables par motif (masques : scripts/build-photo-masks.mjs). mask : le fil, repeint à la couleur exacte
+// de la bobine (src/lib/color.ts). beadMask / beadRefLum (affiché par le script) : les perles, repeintes en or ou en
+// argent selon le choix du client. Le décor reste celui de la photo.
+export type PatternPhoto = { src: string; mask: string; beadMask: string; beadRefLum: number };
 
 export const PATTERN_PHOTOS: Partial<Record<string, PatternPhoto>> = {
   arabesques: {
     src: "/images/produits/bracelet-atelier-1.jpg",
     mask: "/images/produits/bracelet-atelier-1.masque.png",
-    refLum: 0.0289,
-    contrast: 0.8,
     beadMask: "/images/produits/bracelet-atelier-1.perles.png",
     beadRefLum: 0.2484,
   },
   vagues: {
     src: "/images/produits/bracelet-atelier-2.jpg",
     mask: "/images/produits/bracelet-atelier-2.masque.png",
-    refLum: 0.0108,
-    contrast: 0.55,
     beadMask: "/images/produits/bracelet-atelier-2.perles.png",
     beadRefLum: 0.187,
   },

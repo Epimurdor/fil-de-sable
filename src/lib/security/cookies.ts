@@ -4,7 +4,7 @@ import { cookies } from "next/headers";
 // Noms et attributs communs des cookies de l'application.
 //
 // En production (HTTPS), le préfixe __Host- impose au navigateur : Secure, Path=/ et aucun attribut
-// Domain. Un cookie du même nom posé par un autre sous-domaine de l'hébergeur (*.wasmer.app) ou
+// Domain. Un cookie du même nom posé par un autre sous-domaine de l'hébergeur (*.onrender.com) ou
 // injecté en clair est alors refusé : ni fixation de session, ni panier imposé depuis l'extérieur.
 // En développement (http://localhost), le préfixe est omis : il exige une origine sécurisée.
 const isProduction = process.env.NODE_ENV === "production";

@@ -1,0 +1,16 @@
+-- RLS sans politique : ferme l'API Data de Supabase (PostgREST, rôles anon/authenticated) sur toutes les tables.
+-- L'app (Prisma) se connecte avec le rôle propriétaire des tables, qui n'est pas soumis au RLS : aucun effet sur elle.
+ALTER TABLE "User" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "Session" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "Category" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "Product" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "ThreadColor" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "ProductOption" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "Cart" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "CartItem" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "Address" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "ShippingMethod" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "Order" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "OrderItem" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "OrderEvent" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "_prisma_migrations" ENABLE ROW LEVEL SECURITY;

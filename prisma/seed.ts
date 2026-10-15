@@ -1,6 +1,6 @@
 // Exécuté par `pnpm db:seed` (Node 24 lit le TypeScript nativement). Idempotent : upserts partout.
 import { hashPassword } from "../src/lib/auth/password.ts";
-// Même client que l'app (driver adapter Postgres, DATABASE_URL ou variables DB_* de Wasmer).
+// Même client que l'app (driver adapter Postgres, DATABASE_URL).
 import { prisma } from "../src/lib/db.ts";
 
 // Palette de fils (hex) utilisée par le visuel généré et le configurateur.
@@ -163,7 +163,7 @@ async function main() {
       email: adminEmail,
       passwordHash: adminPasswordHash,
       firstName: "Atelier",
-      lastName: "Fil de Sable",
+      lastName: "Fil du Sable",
       role: "admin",
     },
   });

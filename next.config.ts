@@ -49,18 +49,15 @@ const nextConfig: NextConfig = {
   },
   // Hébergement Wasmer (next-bundle) : les routes d'erreur "/500" et "/404/?" y sont appliquées sans
   // ancrage, donc à tout chemin qui CONTIENT "/500" ou "/404". Un chunk nommé "500-<hash>.js" était servi
-  // en 500 et cassait la navigation. Les chunks au nom numérique deviennent "chunks/c-500-<hash>.js" ;
-  // main, webpack, framework… gardent leur nom. Garde-fou : scripts/check-static-paths.mjs.
+  // en 500 et cassait la navigation. Tous les chunks client sont préfixés : "chunks/c-500-<hash>.js".
+  // Modèle de nom fixe (pas de fonction) : le chargeur de webpack doit calculer les mêmes noms que le build.
+  // Garde-fou : scripts/check-static-paths.mjs.
   webpack(config, { isServer, dev }) {
     if (isServer || dev) return config;
     const prefix = (template: string) => template.replace("static/chunks/", "static/chunks/c-");
-    const { filename, chunkFilename } = config.output ?? {};
-    if (typeof chunkFilename === "string") config.output.chunkFilename = prefix(chunkFilename);
-    if (typeof filename === "string") {
-      config.output.filename = (pathData: { chunk?: { name?: string | null; id?: string | number | null } }) => {
-        const name = String(pathData.chunk?.name ?? pathData.chunk?.id ?? "");
-        return /^\d/.test(name) ? prefix(filename) : filename;
-      };
+    for (const key of ["filename", "chunkFilename"] as const) {
+      const template = config.output?.[key];
+      if (typeof template === "string") config.output[key] = prefix(template);
     }
     return config;
   },

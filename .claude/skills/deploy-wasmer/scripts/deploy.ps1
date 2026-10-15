@@ -151,6 +151,22 @@ foreach ($p in $Paths) {
   } else { $errors++; "{0,-26} PAS DE REPONSE" -f $p }
 }
 
+# Fichiers JS/CSS de la page d'accueil : un seul en erreur casse la navigation côté navigateur
+# (ex. chunk "500-<hash>.js" servi en 500 par next-bundle), même si toutes les pages répondent 200.
+Step "Fichiers statiques (_next/static) de l'accueil"
+try {
+  $homeHtml = (Invoke-WebRequest "$url/" -UseBasicParsing -TimeoutSec 90).Content
+  $assets = [regex]::Matches($homeHtml, '/_next/static/[^"''\s<>]+\.(?:js|css)') | ForEach-Object { $_.Value } | Select-Object -Unique
+  $badAssets = 0
+  foreach ($a in $assets) {
+    $code = try { (Invoke-WebRequest "$url$a" -UseBasicParsing -Method Head -TimeoutSec 60).StatusCode } catch { [int]$_.Exception.Response.StatusCode }
+    if ($code -ne 200) { $badAssets++; $errors++; "{0}  {1}" -f $code, $a }
+  }
+  "{0} fichier(s) vérifié(s), {1} en erreur" -f @($assets).Count, $badAssets
+} catch {
+  $errors++; "Impossible de lire la page d'accueil : $($_.Exception.Message)"
+}
+
 if ($errors -gt 0) {
   Write-Host "`n$errors page(s) en erreur. Diagnostic : .\.claude\skills\deploy-wasmer\scripts\debug.ps1" -ForegroundColor Red
   exit 1

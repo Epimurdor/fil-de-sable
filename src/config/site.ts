@@ -5,7 +5,7 @@ export const site = {
   description:
     "Bracelets, bagues et colliers en micro-macramé, noués à la main sur commande dans un petit atelier. Fil ciré, perles et pierres, zéro métal.",
   email: "bonjour@fildesable.fr",
-  instagram: "fildesable",
+  facebook: "https://www.facebook.com/schweitzer.nathalie.9",
   orderPrefix: "FDS",
   currency: "EUR",
   locale: "fr-FR",

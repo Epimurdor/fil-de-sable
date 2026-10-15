@@ -15,7 +15,7 @@ export async function SiteHeader() {
   const { itemCount } = cartSummary(cart);
 
   const nav = links.map((l) => (
-    <Link key={l.href} href={l.href} className="shrink-0 whitespace-nowrap text-ink-2 transition-colors hover:text-ink">
+    <Link key={l.href} href={l.href} className="vine shrink-0 whitespace-nowrap text-ink-2 transition-colors hover:text-ink">
       {l.label}
     </Link>
   ));
@@ -28,10 +28,10 @@ export async function SiteHeader() {
         </Link>
         <nav className="hidden items-center gap-7 text-sm md:flex">{nav}</nav>
         <div className="flex items-center gap-5 text-sm">
-          <Link href={user ? (user.role === "admin" ? "/admin" : "/compte") : "/connexion"} className="text-ink-2 hover:text-ink">
+          <Link href={user ? (user.role === "admin" ? "/admin" : "/compte") : "/connexion"} className="vine text-ink-2 hover:text-ink">
             {user ? user.firstName : "Connexion"}
           </Link>
-          <Link href="/panier" className="text-ink-2 hover:text-ink">
+          <Link href="/panier" className="vine text-ink-2 hover:text-ink">
             Panier{itemCount > 0 ? ` (${itemCount})` : ""}
           </Link>
         </div>

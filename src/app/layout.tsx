@@ -4,6 +4,7 @@ import "./globals.css";
 import { site } from "@/config/site";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
+import { VineWeave } from "@/components/vine-weave";
 
 const bricolage = Bricolage_Grotesque({
   variable: "--font-bricolage",
@@ -30,6 +31,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <SiteHeader />
         <main className="flex-1">{children}</main>
         <SiteFooter />
+        <VineWeave />
       </body>
     </html>
   );

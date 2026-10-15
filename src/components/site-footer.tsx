@@ -24,14 +24,14 @@ export function SiteFooter() {
         <ul className="space-y-2 text-ink-2">
           <li><a href={`mailto:${site.email}`} className="hover:text-ink">{site.email}</a></li>
           <li>
-            <a href={`https://instagram.com/${site.instagram}`} className="hover:text-ink" rel="noreferrer" target="_blank">
-              Instagram
+            <a href={site.facebook} className="hover:text-ink" rel="noreferrer" target="_blank">
+              Facebook
             </a>
           </li>
           <li className="pt-4 text-ink-3">Livraison offerte dès 60 €. Lettre suivie, Mondial Relay ou Colissimo.</li>
         </ul>
       </div>
-      <p className="mx-auto max-w-6xl px-4 pb-8 text-xs text-ink-3 sm:px-6">© {new Date().getFullYear()} {site.name}. Fait main en France.</p>
+      <p className="mx-auto max-w-6xl px-4 pb-8 text-xs text-ink-3 sm:px-6">© {new Date().getFullYear()} {site.name}. Fait main en Alsace par Nathalie</p>
     </footer>
   );
 }

@@ -43,8 +43,8 @@ export default function AtelierPage() {
           <p className="mt-10 border-t border-line pt-6 text-sm text-ink-2">
             Une question, un cadeau à préparer ? Écris à{" "}
             <a href={`mailto:${site.email}`} className="text-ink underline underline-offset-4">{site.email}</a> ou sur{" "}
-            <a href={`https://instagram.com/${site.instagram}`} className="text-ink underline underline-offset-4" rel="noreferrer" target="_blank">
-              Instagram
+            <a href={site.facebook} className="text-ink underline underline-offset-4" rel="noreferrer" target="_blank">
+              Facebook
             </a>
             . On répond entre deux nœuds.
           </p>

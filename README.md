@@ -16,7 +16,7 @@ CREATE DATABASE fildesable OWNER fildesable;
 
 ```bash
 corepack enable       # active pnpm
-pnpm install          # génère aussi le client Prisma
+pnpm install          # le client Prisma est généré par dev/build/typecheck (pas de postinstall : build Wasmer)
 cp .env.example .env  # puis renseigne DATABASE_URL, SEED_ADMIN_EMAIL et SEED_ADMIN_PASSWORD
 pnpm db:migrate       # applique les migrations et lance le seed
 pnpm dev              # http://localhost:3000

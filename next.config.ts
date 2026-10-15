@@ -39,10 +39,10 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
-  // Hébergement Wasmer (next-bundle) : seuls les fichiers tracés sont embarqués. @swc/helpers, requis
-  // à l'exécution par le serveur Next, échappe au traçage avec le node_modules strict de pnpm.
+  // Hébergement Wasmer (next-bundle) : seuls les fichiers tracés sont embarqués. Le client Prisma
+  // lit son moteur WebAssembly (query_compiler_bg.wasm) sur le disque : invisible pour le traçage.
   outputFileTracingIncludes: {
-    "/*": ["./node_modules/@swc/helpers/**/*"],
+    "/*": ["./node_modules/.prisma/client/**/*", "./node_modules/@swc/helpers/**/*"],
   },
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];

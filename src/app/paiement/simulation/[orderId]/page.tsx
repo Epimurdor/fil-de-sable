@@ -25,7 +25,7 @@ export default async function MockPaymentPage({
 
   return (
     <div className="mx-auto max-w-lg px-4 py-16 sm:px-6">
-      <div className="rounded-md border border-line bg-white p-8">
+      <div className="rounded-md border border-line bg-card p-8">
         <p className="inline-flex items-center gap-2 rounded-md bg-accent-soft px-3 py-1 text-xs font-semibold text-accent-strong">
           Paiement simulé
         </p>

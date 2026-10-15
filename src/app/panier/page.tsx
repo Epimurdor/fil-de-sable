@@ -53,7 +53,7 @@ function CartRow({ item }: { item: CartItemWithProduct }) {
           <p className="shrink-0 font-semibold text-ink">{formatPrice(item.unitPriceCents * item.quantity)}</p>
         </div>
         <div className="mt-auto flex items-center gap-3">
-          <form action={updateCartItem} className="inline-flex items-center rounded-md border border-line-2 bg-white">
+          <form action={updateCartItem} className="inline-flex items-center rounded-md border border-line-2 bg-card">
             <input type="hidden" name="itemId" value={item.id} />
             <button name="quantity" value={item.quantity - 1} className="px-2.5 py-1.5 text-ink-2 hover:text-ink" aria-label="Moins">
               <Minus className="h-4 w-4" />
@@ -108,7 +108,7 @@ export default async function CartPage() {
           ))}
         </ul>
 
-        <aside className="h-fit rounded-md border border-line bg-white/70 p-6 lg:sticky lg:top-24">
+        <aside className="h-fit rounded-md border border-line bg-card/70 p-6 lg:sticky lg:top-24">
           <h2 className="text-lg font-medium text-ink">Récapitulatif</h2>
           <dl className="mt-4 space-y-2 text-sm">
             <div className="flex justify-between"><dt className="text-ink-3">Sous-total</dt><dd className="font-semibold">{formatPrice(subtotalCents)}</dd></div>

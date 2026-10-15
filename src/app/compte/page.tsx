@@ -18,12 +18,12 @@ export default async function AccountPage() {
       <h1 className="text-3xl font-medium tracking-tight text-ink">Mon profil</h1>
 
       <div className="grid gap-5 sm:grid-cols-2">
-        <section className="rounded-md border border-line bg-white/70 p-6">
+        <section className="rounded-md border border-line bg-card/70 p-6">
           <h2 className="text-lg font-medium text-ink">Identité</h2>
           <p className="mt-3 text-ink-2">{user.firstName} {user.lastName}</p>
           <p className="text-sm text-ink-3">{user.email}</p>
         </section>
-        <section className="rounded-md border border-line bg-white/70 p-6">
+        <section className="rounded-md border border-line bg-card/70 p-6">
           <h2 className="text-lg font-medium text-ink">Adresse de livraison</h2>
           {address ? (
             <address className="mt-3 not-italic text-ink-2">
@@ -50,7 +50,7 @@ export default async function AccountPage() {
             Aucune commande pour l'instant. <Link href="/boutique" className="font-semibold text-accent-strong hover:underline">La boutique t'attend.</Link>
           </p>
         ) : (
-          <ul className="mt-4 divide-y divide-line rounded-md border border-line bg-white/70">
+          <ul className="mt-4 divide-y divide-line rounded-md border border-line bg-card/70">
             {recent.map((o) => (
               <li key={o.id}>
                 <Link href={`/compte/commandes/${o.number}`} className="flex items-center justify-between gap-4 px-6 py-4 transition hover:bg-paper">

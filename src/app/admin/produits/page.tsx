@@ -20,7 +20,7 @@ export default async function AdminProductsPage() {
         <h1 className="text-3xl font-medium tracking-tight text-ink">Produits</h1>
         <ButtonLink href="/admin/produits/nouveau">Nouveau produit</ButtonLink>
       </div>
-      <div className="mt-6 overflow-x-auto rounded-md border border-line bg-white">
+      <div className="mt-6 overflow-x-auto rounded-md border border-line bg-card">
         <table className="w-full text-sm">
           <thead className="bg-paper-2 text-left text-xs uppercase tracking-wider text-ink-3">
             <tr>

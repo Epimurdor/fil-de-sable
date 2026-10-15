@@ -39,7 +39,7 @@ export default async function AdminHome() {
         {recent.length === 0 ? (
           <p className="mt-4 text-sm text-ink-3">Aucune commande pour le moment.</p>
         ) : (
-          <div className="mt-4 overflow-x-auto rounded-md border border-line bg-white">
+          <div className="mt-4 overflow-x-auto rounded-md border border-line bg-card">
             <table className="w-full text-sm">
               <thead className="bg-paper-2 text-left text-xs uppercase tracking-wider text-ink-3">
                 <tr><th className="px-4 py-3">Numéro</th><th className="px-4 py-3">Date</th><th className="px-4 py-3">Client</th><th className="px-4 py-3">Statut</th><th className="px-4 py-3 text-right">Total</th></tr>

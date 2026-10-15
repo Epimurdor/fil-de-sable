@@ -24,7 +24,7 @@ export function ProductCard({ product, priority }: { product: ProductCardData; p
         kind={kindFromCategorySlug(product.category.slug)}
         imageUrl={product.imageUrl}
         alt={product.name}
-        className="aspect-[4/5] rounded-md"
+        className="aspect-[4/5] rounded-lg ring-1 ring-line/60 transition-shadow duration-300 group-hover:shadow-[0_16px_32px_-20px_rgb(87_65_38/0.5)] [&_img]:transition-transform [&_img]:duration-500 [&_img]:ease-out group-hover:[&_img]:scale-[1.03]"
         priority={priority}
       />
       <div className="mt-3 flex items-baseline justify-between gap-3">

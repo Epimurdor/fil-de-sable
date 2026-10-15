@@ -17,14 +17,14 @@ export default async function AdminOrdersPage({ searchParams }: { searchParams: 
     <div>
       <h1 className="text-3xl font-medium tracking-tight text-ink">Commandes</h1>
       <div className="mt-6 flex flex-wrap gap-2">
-        <Link href="/admin/commandes" className={cn("rounded-md border px-3.5 py-1.5 text-sm font-semibold", !filter ? "border-ink bg-ink text-paper" : "border-line-2 bg-white text-ink-2")}>
+        <Link href="/admin/commandes" className={cn("rounded-md border px-3.5 py-1.5 text-sm font-semibold", !filter ? "border-ink bg-ink text-paper" : "border-line-2 bg-card text-ink-2")}>
           Toutes
         </Link>
         {ORDER_STATUSES.map((s) => (
           <Link
             key={s}
             href={`/admin/commandes?statut=${s}`}
-            className={cn("rounded-md border px-3.5 py-1.5 text-sm font-semibold", filter === s ? "border-ink bg-ink text-paper" : "border-line-2 bg-white text-ink-2")}
+            className={cn("rounded-md border px-3.5 py-1.5 text-sm font-semibold", filter === s ? "border-ink bg-ink text-paper" : "border-line-2 bg-card text-ink-2")}
           >
             {STATUS_INFO[s].label}
           </Link>
@@ -34,7 +34,7 @@ export default async function AdminOrdersPage({ searchParams }: { searchParams: 
       {orders.length === 0 ? (
         <p className="mt-8 text-sm text-ink-3">Aucune commande dans cette vue.</p>
       ) : (
-        <div className="mt-6 overflow-x-auto rounded-md border border-line bg-white">
+        <div className="mt-6 overflow-x-auto rounded-md border border-line bg-card">
           <table className="w-full text-sm">
             <thead className="bg-paper-2 text-left text-xs uppercase tracking-wider text-ink-3">
               <tr>

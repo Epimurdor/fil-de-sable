@@ -12,7 +12,7 @@ import type { CustomConfig } from "@/lib/types";
 const chip = (active: boolean) =>
   cn(
     "rounded-md border px-3.5 py-2 text-sm transition-colors",
-    active ? "border-ink bg-ink text-paper" : "border-line-2 bg-white text-ink-2 hover:border-ink",
+    active ? "border-ink bg-ink text-paper" : "border-line-2 bg-card text-ink-2 hover:border-ink",
   );
 
 function Step({ title, hint, children }: { title: string; hint?: string; children: React.ReactNode }) {
@@ -87,7 +87,7 @@ export function Configurator({ basePriceCents, leadTimeDays }: { basePriceCents:
                   onClick={() => toggleThread(t.hex)}
                   aria-pressed={active}
                   className={cn(
-                    "flex items-center gap-2.5 rounded-md border bg-white px-3 py-2 text-left text-sm transition-colors",
+                    "flex items-center gap-2.5 rounded-md border bg-card px-3 py-2 text-left text-sm transition-colors",
                     active ? "border-ink" : "border-line-2 hover:border-ink",
                   )}
                 >
@@ -132,7 +132,7 @@ export function Configurator({ basePriceCents, leadTimeDays }: { basePriceCents:
                   onClick={() => setConfig((c) => ({ ...c, pattern: p.code }))}
                   aria-pressed={active}
                   className={cn(
-                    "rounded-md border bg-white p-4 text-left transition-colors",
+                    "rounded-md border bg-card p-4 text-left transition-colors",
                     active ? "border-ink" : "border-line-2 hover:border-ink",
                   )}
                 >

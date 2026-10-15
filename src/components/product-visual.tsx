@@ -74,8 +74,8 @@ function ringPath(cx: number, cy: number, rx: number, ry: number, amp: number, k
 function Bead({ x, y, r, hex }: { x: number; y: number; r: number; hex: string }) {
   return (
     <g>
-      <circle cx={x} cy={y + r * 0.35} r={r * 1.05} fill="rgba(30,31,28,0.16)" />
-      <circle cx={x} cy={y} r={r} fill={hex} stroke="rgba(30,31,28,0.25)" strokeWidth={1} />
+      <circle cx={x} cy={y + r * 0.35} r={r * 1.05} fill="rgba(43,36,28,0.16)" />
+      <circle cx={x} cy={y} r={r} fill={hex} stroke="rgba(43,36,28,0.25)" strokeWidth={1} />
       <circle cx={x - r * 0.35} cy={y - r * 0.35} r={r * 0.3} fill="rgba(255,255,255,0.65)" />
     </g>
   );
@@ -88,7 +88,7 @@ function JewelSvg({ colors, kind, beadHex, pattern, title }: { colors: string[];
 
   return (
     <svg viewBox="0 0 400 400" role="img" aria-label={title} className="h-full w-full">
-      <rect width="400" height="400" fill="#f1f1ed" />
+      <rect width="400" height="400" fill="#f1e7d6" />
       {kind === "collier" ? (
         <g fill="none" strokeLinecap="round">
           {colors.map((c, i) => {
@@ -105,7 +105,7 @@ function JewelSvg({ colors, kind, beadHex, pattern, title }: { colors: string[];
         </g>
       ) : (
         <g fill="none" strokeLinecap="round">
-          <ellipse cx="200" cy={kind === "bague" ? 245 : 250} rx={kind === "bague" ? 95 : 150} ry={kind === "bague" ? 26 : 34} fill="rgba(30,31,28,0.07)" />
+          <ellipse cx="200" cy={kind === "bague" ? 245 : 250} rx={kind === "bague" ? 95 : 150} ry={kind === "bague" ? 26 : 34} fill="rgba(43,36,28,0.07)" />
           {colors.map((c, i) => {
             const off = (i - (n - 1) / 2) * spread;
             const rx = (kind === "bague" ? 92 : 145) + off;

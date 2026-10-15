@@ -1,21 +1,26 @@
 @import "tailwindcss";
 
-/* Une seule famille de caractères, un papier presque blanc, une encre, un seul accent
-   (le bleu ardoise du fil des bracelets photographiés). */
+/* Un papier couleur sable, une encre brun-noir, un seul accent (le bleu ardoise du fil des
+   bracelets photographiés). Contrastes vérifiés : ink-3 reste au-dessus de 5:1 sur tout le dégradé. */
 @theme {
-  --color-paper: #fbfbf9;
-  --color-paper-2: #f1f1ed;
-  --color-line: #e3e3dd;
-  --color-line-2: #c9c9c1;
-  --color-ink: #1e1f1c;
-  --color-ink-2: #4a4b46;
-  --color-ink-3: #6b6c66;
+  --color-paper: #fbf7f0;
+  --color-paper-2: #f1e7d6;
+  --color-card: #fffcf6;
+  --color-line: #e6dac6;
+  --color-line-2: #cdbda3;
+  --color-ink: #2b241c;
+  --color-ink-2: #574b3e;
+  --color-ink-3: #6a5d4f;
+  --color-sand: #e8d5b5;
+  --color-sand-deep: #c9a87a;
   --color-accent: #4a5e72;
   --color-accent-strong: #34475a;
-  --color-accent-soft: #e7ecf1;
+  --color-accent-soft: #e6ebef;
 
   --font-sans: var(--font-bricolage), system-ui, sans-serif;
   --font-display: var(--font-bricolage), system-ui, sans-serif;
+  /* Écriture à la main, pour de courtes annotations seulement. */
+  --font-hand: var(--font-caveat), "Segoe Print", cursive;
 }
 
 :root {
@@ -23,10 +28,37 @@
 }
 
 body {
+  position: relative;
+  isolation: isolate;
   background-color: var(--color-paper);
   color: var(--color-ink);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
+}
+
+/* Dégradé sable, fixé derrière la page (un calque fixe plutôt que background-attachment,
+   qui saccade sur mobile) : clair en haut, plus doré vers le bas, avec deux halos chauds. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  background:
+    radial-gradient(60rem 40rem at 85% -10%, rgb(232 213 181 / 0.55), transparent 70%),
+    radial-gradient(50rem 35rem at -10% 110%, rgb(201 168 122 / 0.28), transparent 70%),
+    linear-gradient(180deg, #fbf7f0 0%, #f6eee1 45%, #f0e3cd 100%);
+}
+
+/* Grain de papier, à peine visible : la page a une texture, pas un aplat numérique. */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.35;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.45 0 0 0 0 0.36 0 0 0 0 0.25 0 0 0 0.09 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
 h1,
@@ -36,13 +68,21 @@ h3 {
 }
 
 ::selection {
-  background: var(--color-accent-soft);
+  background: var(--color-sand);
 }
 
 /* Champs de formulaire. */
 .field {
-  @apply w-full rounded-md border border-line-2 bg-white px-3.5 py-2.5 text-ink placeholder:text-ink-3 focus:border-ink focus:outline-none focus:ring-1 focus:ring-ink;
+  @apply w-full rounded-md border border-line-2 bg-card px-3.5 py-2.5 text-ink placeholder:text-ink-3 focus:border-ink focus:outline-none focus:ring-1 focus:ring-ink;
 }
 .label {
   @apply mb-1.5 block text-sm font-medium text-ink-2;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+  }
 }

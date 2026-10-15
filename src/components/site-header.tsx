@@ -21,7 +21,7 @@ export async function SiteHeader() {
   ));
 
   return (
-    <header className="border-b border-line bg-paper">
+    <header className="sticky top-0 z-30 border-b border-line/70 bg-paper/75 backdrop-blur-md supports-[backdrop-filter]:bg-paper/60">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-6 px-4 sm:px-6">
         <Link href="/" className="text-sm font-semibold uppercase tracking-[0.18em] text-ink">
           {site.name}
@@ -36,7 +36,7 @@ export async function SiteHeader() {
           </Link>
         </div>
       </div>
-      <nav className="flex gap-6 overflow-x-auto px-4 pb-3 text-sm md:hidden">{nav}</nav>
+      <nav className="flex gap-6 overflow-x-auto px-4 pb-3 text-sm [scrollbar-width:none] md:hidden [&::-webkit-scrollbar]:hidden">{nav}</nav>
     </header>
   );
 }

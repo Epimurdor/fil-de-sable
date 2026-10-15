@@ -33,7 +33,7 @@ export default async function AdminOrderPage({ params }: { params: Promise<{ id:
 
       <div className="grid gap-8 lg:grid-cols-[1.2fr_1fr]">
         <div className="space-y-6">
-          <section className="rounded-md border border-line bg-white p-6">
+          <section className="rounded-md border border-line bg-card p-6">
             <h2 className="text-lg font-medium text-ink">À fabriquer</h2>
             <ul className="mt-4 divide-y divide-line">
               {order.items.map((it) => {
@@ -66,7 +66,7 @@ export default async function AdminOrderPage({ params }: { params: Promise<{ id:
             </dl>
           </section>
 
-          <section className="grid gap-6 rounded-md border border-line bg-white p-6 text-sm sm:grid-cols-2">
+          <section className="grid gap-6 rounded-md border border-line bg-card p-6 text-sm sm:grid-cols-2">
             <div>
               <h2 className="text-lg font-medium text-ink">Client</h2>
               <p className="mt-2 text-ink-2">{order.user.firstName} {order.user.lastName}</p>
@@ -88,14 +88,14 @@ export default async function AdminOrderPage({ params }: { params: Promise<{ id:
         </div>
 
         <div className="space-y-6">
-          <section className="rounded-md border border-line bg-white p-6">
+          <section className="rounded-md border border-line bg-card p-6">
             <h2 className="text-lg font-medium text-ink">Changer le statut</h2>
             <p className="mt-1 text-sm text-ink-3">Le client voit la mise à jour et la note dans son suivi.</p>
             <div className="mt-4">
               <OrderStatusForm orderId={order.id} current={order.status} />
             </div>
           </section>
-          <section className="rounded-md border border-line bg-white p-6">
+          <section className="rounded-md border border-line bg-card p-6">
             <h2 className="text-lg font-medium text-ink">Historique</h2>
             <ul className="mt-4 space-y-3 text-sm">
               {[...order.events].reverse().map((e) => (

@@ -19,7 +19,7 @@ export default async function OrdersPage() {
           Rien pour l'instant. <Link href="/boutique" className="font-semibold text-accent-strong hover:underline">Voir la boutique</Link>
         </p>
       ) : (
-        <ul className="mt-6 divide-y divide-line rounded-md border border-line bg-white/70">
+        <ul className="mt-6 divide-y divide-line rounded-md border border-line bg-card/70">
           {orders.map((o) => (
             <li key={o.id}>
               <Link href={`/compte/commandes/${o.number}`} className="flex items-center justify-between gap-4 px-6 py-4 transition hover:bg-paper">

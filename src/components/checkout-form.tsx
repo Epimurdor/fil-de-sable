@@ -73,7 +73,7 @@ export function CheckoutForm({
                 <label
                   key={m.code}
                   className={cn(
-                    "flex cursor-pointer items-center justify-between gap-4 rounded-md border bg-white px-4 py-3 transition",
+                    "flex cursor-pointer items-center justify-between gap-4 rounded-md border bg-card px-4 py-3 transition",
                     active ? "border-ink ring-2 ring-ink/10" : "border-line-2 hover:border-ink-3",
                   )}
                 >
@@ -104,7 +104,7 @@ export function CheckoutForm({
         </section>
       </div>
 
-      <aside className="h-fit rounded-md border border-line bg-white/70 p-6 lg:sticky lg:top-24">
+      <aside className="h-fit rounded-md border border-line bg-card/70 p-6 lg:sticky lg:top-24">
         <h2 className="text-lg font-medium text-ink">Ta commande</h2>
         <ul className="mt-4 divide-y divide-line text-sm">
           {items.map((it) => (

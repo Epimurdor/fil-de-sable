@@ -68,13 +68,13 @@ export default async function OrderPage({
       )}
 
       <div className="grid gap-8 md:grid-cols-[1fr_1.2fr]">
-        <section className="rounded-md border border-line bg-white/70 p-6">
+        <section className="rounded-md border border-line bg-card/70 p-6">
           <h2 className="mb-5 text-lg font-medium text-ink">Où en est ta pièce</h2>
           <OrderTimeline status={order.status} events={order.events} />
         </section>
 
         <div className="space-y-6">
-          <section className="rounded-md border border-line bg-white/70 p-6">
+          <section className="rounded-md border border-line bg-card/70 p-6">
             <h2 className="text-lg font-medium text-ink">Articles</h2>
             <ul className="mt-4 divide-y divide-line">
               {order.items.map((it) => {
@@ -109,7 +109,7 @@ export default async function OrderPage({
             </dl>
           </section>
 
-          <section className="rounded-md border border-line bg-white/70 p-6 text-sm">
+          <section className="rounded-md border border-line bg-card/70 p-6 text-sm">
             <h2 className="text-lg font-medium text-ink">Livraison</h2>
             <address className="mt-3 not-italic text-ink-2">
               {order.shipFullName}<br />

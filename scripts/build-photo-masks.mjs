@@ -21,12 +21,19 @@ const PHOTOS = [
     src: "public/images/produits/bracelet-atelier-1.jpg",
     isThread: ({ h, s, v }) => h >= 180 && h <= 250 && s >= 0.14 && v <= 0.78,
     contrast: 0.8,
+    // Perles nacrées : claires et peu saturées (le coquillage, beige, est plus saturé).
+    isBead: ({ s, v }) => s <= 0.2 && v >= 0.45,
+    // Perles ratées par la détection (ombre, reflet bleuté) : [x, y, rayon] en pixels de la photo.
+    extraBeads: [[410, 618, 30], [295, 743, 15], [345, 807, 18], [493, 873, 26], [655, 893, 29], [1255, 585, 28], [1360, 715, 18], [1232, 775, 27], [1095, 822, 29]],
   },
   {
     // Fil prune très foncé, perles quartz rose, coquillage beige aux fissures brunes.
     src: "public/images/produits/bracelet-atelier-2.jpg",
     isThread: ({ h, s, v }) => (v <= 0.4 && h >= 230 && h <= 345 && s >= 0.06) || v <= 0.2,
     contrast: 0.55,
+    // Quartz rose : rose pâle (teinte rose / mauve), plus clair que le fil.
+    isBead: ({ h, s, v }) => v >= 0.45 && s >= 0.04 && (h >= 260 || h <= 20),
+    extraBeads: [[240, 1060, 62]],
   },
 ];
 
@@ -99,6 +106,79 @@ function dilate(mask, w, h) {
   return out;
 }
 
+// Perles : zones de la couleur des perles, dans le cadre du bracelet, de taille de perle et à peu près
+// rondes ; chacune est remplacée par son disque (reflets et creux compris), moins le fil qui passe devant.
+function detectBeads(data, thread, w, h, isBead, extraBeads = []) {
+  let x0 = w, y0 = h, x1 = 0, y1 = 0;
+  for (let i = 0; i < w * h; i++) {
+    if (!thread[i]) continue;
+    const x = i % w, y = (i / w) | 0;
+    if (x < x0) x0 = x;
+    if (x > x1) x1 = x;
+    if (y < y0) y0 = y;
+    if (y > y1) y1 = y;
+  }
+  const cand = new Uint8Array(w * h);
+  for (let y = y0; y <= y1; y++) {
+    for (let x = x0; x <= x1; x++) {
+      const i = y * w + x;
+      if (!thread[i] && isBead(hsv(data[i * 3] / 255, data[i * 3 + 1] / 255, data[i * 3 + 2] / 255))) cand[i] = 1;
+    }
+  }
+  const seen = new Uint8Array(w * h);
+  const beads = [];
+  const stack = [];
+  for (let i = 0; i < w * h; i++) {
+    if (!cand[i] || seen[i]) continue;
+    let n = 0, bx0 = w, by0 = h, bx1 = 0, by1 = 0;
+    stack.push(i);
+    seen[i] = 1;
+    while (stack.length) {
+      const p = stack.pop();
+      const x = p % w, y = (p / w) | 0;
+      n++;
+      if (x < bx0) bx0 = x;
+      if (x > bx1) bx1 = x;
+      if (y < by0) by0 = y;
+      if (y > by1) by1 = y;
+      for (const q of [x > 0 ? p - 1 : -1, x < w - 1 ? p + 1 : -1, y > 0 ? p - w : -1, y < h - 1 ? p + w : -1]) {
+        if (q >= 0 && cand[q] && !seen[q]) {
+          seen[q] = 1;
+          stack.push(q);
+        }
+      }
+    }
+    const bw = bx1 - bx0 + 1, bh = by1 - by0 + 1;
+    const r = Math.max(bw, bh) / 2;
+    const fill = n / (Math.PI * r * r); // 1 = disque plein
+    if (n < 250 || n > 40000 || bw / bh < 0.6 || bw / bh > 1.6 || fill < 0.4) continue;
+    // Une perle est sertie dans le fil : la couronne juste autour d'elle est surtout du fil.
+    const cx = (bx0 + bx1) / 2, cy = (by0 + by1) / 2;
+    let ring = 0, ringThread = 0;
+    for (let a = 0; a < 64; a++) {
+      for (const k of [1.25, 1.45, 1.65]) {
+        const x = Math.round(cx + Math.cos((a / 64) * 2 * Math.PI) * r * k);
+        const y = Math.round(cy + Math.sin((a / 64) * 2 * Math.PI) * r * k);
+        if (x < 0 || y < 0 || x >= w || y >= h) continue;
+        ring++;
+        if (thread[y * w + x]) ringThread++;
+      }
+    }
+    if (ringThread / ring >= 0.45) beads.push({ cx, cy, r: r * 1.04 });
+  }
+  for (const [cx, cy, r] of extraBeads) beads.push({ cx, cy, r });
+  const mask = new Uint8Array(w * h);
+  for (const b of beads) {
+    for (let y = Math.max(0, Math.floor(b.cy - b.r)); y <= Math.min(h - 1, Math.ceil(b.cy + b.r)); y++) {
+      for (let x = Math.max(0, Math.floor(b.cx - b.r)); x <= Math.min(w - 1, Math.ceil(b.cx + b.r)); x++) {
+        const i = y * w + x;
+        if ((x - b.cx) ** 2 + (y - b.cy) ** 2 <= b.r * b.r && !thread[i]) mask[i] = 1;
+      }
+    }
+  }
+  return { mask, beads };
+}
+
 for (const photo of PHOTOS) {
   const file = path.join(root, photo.src);
   const { data, info } = await sharp(file).removeAlpha().raw().toBuffer({ resolveWithObject: true });
@@ -126,6 +206,22 @@ for (const photo of PHOTOS) {
   const coverage = ((lums.length * 7) / (w * h)) * 100;
   console.log(`${path.basename(out)} : ${w}×${h}, fil ${coverage.toFixed(1)} % de l'image, luminance de référence ${ref.toFixed(4)}`);
 
+  // Masque des perles (recolorées en argent ou en doré selon le choix du client).
+  const { mask: beadMask, beads } = detectBeads(data, mask, w, h, photo.isBead, photo.extraBeads);
+  const beadLums = [];
+  for (let i = 0; i < w * h; i += 3) {
+    if (beadMask[i]) beadLums.push(0.2126 * lin(data[i * 3] / 255) + 0.7152 * lin(data[i * 3 + 1] / 255) + 0.0722 * lin(data[i * 3 + 2] / 255));
+  }
+  beadLums.sort((a, b) => a - b);
+  const beadRef = beadLums[beadLums.length >> 1] ?? 1;
+  const beadOut = file.replace(/\.jpg$/, ".perles.png");
+  await sharp(Buffer.from(beadMask.map((m) => m * 255)), { raw: { width: w, height: h, channels: 1 } })
+    .blur(1)
+    .toColourspace("b-w")
+    .png({ compressionLevel: 9 })
+    .toFile(beadOut);
+  console.log(`${path.basename(beadOut)} : ${beads.length} perles, luminance de référence ${beadRef.toFixed(4)}`);
+
   if (previewDir) {
     fs.mkdirSync(previewDir, { recursive: true });
     const maskBlur = await sharp(out).extractChannel(0).raw().toBuffer();
@@ -146,5 +242,37 @@ for (const photo of PHOTOS) {
       await sharp(px, { raw: { width: w, height: h, channels: 3 } }).resize(600).jpeg({ quality: 82 }).toFile(path.join(previewDir, name2));
     }
     await sharp(out).resize(600).toFile(path.join(previewDir, `${path.basename(file, ".jpg")}-masque.png`));
+    // Contrôle des perles : perles détectées teintées en rouge vif.
+    const bm = await sharp(beadOut).extractChannel(0).raw().toBuffer();
+    const check = Buffer.from(data);
+    for (let i = 0; i < w * h; i++) {
+      const m = bm[i] / 255;
+      check[i * 3] = Math.round(data[i * 3] * (1 - m) + 255 * m);
+      check[i * 3 + 1] = Math.round(data[i * 3 + 1] * (1 - m));
+      check[i * 3 + 2] = Math.round(data[i * 3 + 2] * (1 - m));
+    }
+    await sharp(check, { raw: { width: w, height: h, channels: 3 } }).resize(600).jpeg({ quality: 82 }).toFile(path.join(previewDir, `${path.basename(file, ".jpg")}-perles.jpg`));
+    // Perles en métal : même calcul que src/components/photo-recolor.tsx (metalShade).
+    for (const [name, hex, contrast] of [["or", "#E2B65A", 0.9], ["argent", "#B9BEC5", 1.6]]) {
+      const t = [1, 3, 5].map((k) => lin(parseInt(hex.slice(k, k + 2), 16) / 255));
+      const px = Buffer.from(data);
+      for (let i = 0; i < w * h; i++) {
+        const m = bm[i] / 255;
+        if (!m) continue;
+        const l = 0.2126 * lin(data[i * 3] / 255) + 0.7152 * lin(data[i * 3 + 1] / 255) + 0.0722 * lin(data[i * 3 + 2] / 255);
+        const k = Math.min(4, l / beadRef) ** contrast;
+        const glint = Math.max(0, k - 1.2) * 0.25; // reflets : vers le blanc
+        for (let c = 0; c < 3; c++) {
+          const metal = Math.min(1, t[c] * Math.min(k, 1.2) + glint);
+          const srgb = metal <= 0.0031308 ? metal * 12.92 : 1.055 * metal ** (1 / 2.4) - 0.055;
+          px[i * 3 + c] = Math.round(data[i * 3 + c] * (1 - m) + srgb * 255 * m);
+        }
+      }
+      await sharp(px, { raw: { width: w, height: h, channels: 3 } })
+        .extract({ left: Math.round(w * 0.1), top: Math.round(h * 0.2), width: Math.round(w * 0.8), height: Math.round(h * 0.4) })
+        .resize(800)
+        .jpeg({ quality: 85 })
+        .toFile(path.join(previewDir, `${path.basename(file, ".jpg")}-perles-${name}.jpg`));
+    }
   }
 }

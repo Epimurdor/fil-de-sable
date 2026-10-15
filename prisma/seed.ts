@@ -48,37 +48,6 @@ const wrist: OptionSeed = {
     { value: "L", label: "L · 17 à 19 cm", priceDeltaCents: 0 },
   ],
 };
-const clasp: OptionSeed = {
-  name: "Fermoir",
-  values: [
-    { value: "coulissant", label: "Nœud coulissant ajustable", priceDeltaCents: 0 },
-    { value: "bouton", label: "Bouton en bois", priceDeltaCents: 150 },
-  ],
-};
-const bead: OptionSeed = {
-  name: "Perle",
-  values: [
-    { value: "aucune", label: "Sans perle", priceDeltaCents: 0 },
-    { value: "bois", label: "Perle en bois", priceDeltaCents: 200 },
-    { value: "lave", label: "Pierre de lave", priceDeltaCents: 400 },
-  ],
-};
-const ring: OptionSeed = {
-  name: "Tour de doigt",
-  values: [48, 50, 52, 54, 56, 58, 60].map((s) => ({
-    value: String(s),
-    label: `Taille ${s}`,
-    priceDeltaCents: 0,
-  })),
-};
-const length: OptionSeed = {
-  name: "Longueur",
-  values: [
-    { value: "40", label: "40 cm · ras du cou", priceDeltaCents: 0 },
-    { value: "45", label: "45 cm · classique", priceDeltaCents: 0 },
-    { value: "50", label: "50 cm · long", priceDeltaCents: 300 },
-  ],
-};
 
 const categories = [
   { slug: "bracelets", name: "Bracelets", description: "Fins, noués serré, à empiler sans compter.", sortOrder: 1 },
@@ -116,44 +85,6 @@ const products: ProductSeed[] = [
     isFeatured: true,
     options: [wrist],
   },
-  // --- Fiches d'exemple à remplacer ou compléter dans l'admin ---
-  {
-    slug: "maree-basse",
-    name: "Marée basse",
-    tagline: "Le bracelet des fins de journée sur la plage",
-    description:
-      "Trois fils de coton ciré tressés en nœuds plats, dans des tons de sable mouillé et de ciel délavé. Il se porte seul ou empilé et se patine joliment avec le temps.",
-    priceCents: 2400,
-    leadTimeDays: 5,
-    colors: [P.sable, P.bleu, P.ecru],
-    category: "bracelets",
-    options: [wrist, clasp],
-  },
-  {
-    slug: "terre-cuite",
-    name: "Terre cuite",
-    tagline: "Chaud comme un mur au soleil",
-    description:
-      "Nœuds en spirale et dégradé terracotta, ocre et brun. Un bracelet qui attrape la lumière et réchauffe un poignet nu.",
-    priceCents: 2600,
-    leadTimeDays: 5,
-    colors: [P.terracotta, P.ocre, P.brun],
-    category: "bracelets",
-    options: [wrist, clasp, bead],
-  },
-  {
-    slug: "nuit-d-ete",
-    name: "Nuit d'été",
-    tagline: "Noir profond et éclats d'ocre",
-    description:
-      "Un bracelet plus graphique : fil noir mat, touches d'ocre, et une perle au choix au centre. Celui qu'on porte avec tout.",
-    priceCents: 2800,
-    leadTimeDays: 6,
-    colors: [P.noir, P.ocre],
-    category: "bracelets",
-    isFeatured: true,
-    options: [wrist, bead],
-  },
   {
     slug: "bracelet-sur-mesure",
     name: "Bracelet sur mesure",
@@ -166,56 +97,6 @@ const products: ProductSeed[] = [
     category: "bracelets",
     isCustomizable: true,
     options: [],
-  },
-  {
-    slug: "petite-dune",
-    name: "Petite dune",
-    tagline: "La bague qu'on oublie et qu'on garde",
-    description:
-      "Micro-macramé en fil de sable et d'écru, nœuds minuscules, zéro métal. Elle se glisse au doigt et ne gêne jamais.",
-    priceCents: 1400,
-    leadTimeDays: 3,
-    colors: [P.sable, P.ecru],
-    category: "bagues",
-    isFeatured: true,
-    options: [ring],
-  },
-  {
-    slug: "braise",
-    name: "Braise",
-    tagline: "Terracotta et bordeaux, en tout petit",
-    description:
-      "Une bague fine, deux tons chauds, un nœud central légèrement bombé. Jolie seule, encore mieux en duo avec Petite dune.",
-    priceCents: 1500,
-    leadTimeDays: 3,
-    colors: [P.terracotta, P.bordeaux],
-    category: "bagues",
-    options: [ring],
-  },
-  {
-    slug: "horizon",
-    name: "Horizon",
-    tagline: "La ligne entre la mer et le ciel",
-    description:
-      "Collier fin en coton ciré, pendentif de nœuds plats dégradés du bleu délavé à l'écru. Se superpose très bien avec une chaîne fine.",
-    priceCents: 3900,
-    leadTimeDays: 8,
-    colors: [P.bleu, P.ecru, P.sable],
-    category: "colliers",
-    isFeatured: true,
-    options: [length],
-  },
-  {
-    slug: "soleil-couchant",
-    name: "Soleil couchant",
-    tagline: "Ocre, terracotta, rose poudré",
-    description:
-      "Trois couleurs de fin de journée tressées en pendentif éventail. Un collier qui se remarque sans en faire trop.",
-    priceCents: 4200,
-    leadTimeDays: 8,
-    colors: [P.ocre, P.terracotta, P.rose],
-    category: "colliers",
-    options: [length],
   },
 ];
 

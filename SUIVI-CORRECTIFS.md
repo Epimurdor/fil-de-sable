@@ -32,13 +32,39 @@ _(bugs remontés mais pas encore traités)_
 
 -->
 
+### 2026-10-15 — Suppression des produits et commandes fictifs (base locale)
+- **Statut :** ✅
+- **Problème :** la boutique contenait 7 fiches d'exemple et une commande de test qui ne correspondent à rien de réel.
+- **Correctif :** base locale nettoyée en une transaction : produits `maree-basse`, `terre-cuite`, `nuit-d-ete`, `petite-dune`, `braise`, `horizon`, `soleil-couchant` ; commande `FDS-2026-W7GAJM` (paiement simulé) ; compte `client-test@example.test` ; 3 paniers vides. Conservés : Perle d'écume et Quartz rose (vrais bracelets, photos), Bracelet sur mesure (support du configurateur), compte admin, catégories et modes de livraison. Le seed ne recrée plus les fiches d'exemple (ni leurs options Fermoir, Perle, Tour de doigt, Longueur).
+- **Fichiers :** `prisma/seed.ts` (base locale modifiée hors fichiers)
+- **Vérification :** inventaire avant / après : 10 → 3 produits, 1 → 0 commande, 2 → 1 utilisateur, 0 panier · lint et typecheck OK · `/`, `/boutique`, catégories Bagues et Colliers (vides), `/boutique/perle-d-ecume`, `/quiz`, `/configurateur` répondent 200 sans erreur ni produit fictif ; `/boutique/maree-basse` → page introuvable.
+- **Notes :** base de production non touchée (à nettoyer au prochain déploiement, sur accord). Les catégories Bagues et Colliers sont vides jusqu'à l'ajout de vrais articles. Non commité.
+
+### 2026-10-15 — Aperçu photo : les perles suivent le choix argent / doré
+- **Statut :** ✅
+- **Problème :** dans le configurateur, en vue Photo, passer de « Perles argentées » à « Perles dorées » ne changeait rien : seules les couleurs du fil étaient repeintes.
+- **Cause :** la photo ne recolorait que le fil (un seul masque) ; les perles restaient celles de la photo.
+- **Correctif :** `build-photo-masks.mjs` produit aussi un masque des perles par photo (`*.perles.png` : zones claires serties dans le fil, plus quelques perles positionnées à la main), avec leur luminance de référence. `PhotoRecolor` repeint les perles en or ou en argent en gardant leur relief et leurs reflets (`PHOTO_METALS` : argent plus foncé et contrasté qu'en 3D, sinon il paraît blanc).
+- **Fichiers :** `scripts/build-photo-masks.mjs`, `public/images/produits/bracelet-atelier-1.perles.png`, `public/images/produits/bracelet-atelier-2.perles.png`, `src/components/photo-recolor.tsx`, `src/lib/configurator.ts`, `src/components/configurator.tsx`
+- **Vérification :** typecheck OK · lint OK · aperçus or / argent contrôlés à l'œil (18 perles photo 1, 3 perles photo 2) · navigateur : perle centrale Arabesques argent (220,224,231) → doré (250,204,112), Vagues doré (229,185,91) → argent (190,195,202), capture fil terracotta + perles dorées. Stock de test remis à zéro.
+- **Notes :** non commité. Les deux petites perles dorées du fermoir (photo 1) ne sont pas repeintes. Une nouvelle photo demande de vérifier les perles détectées (aperçu `*-perles.jpg`) et d'ajouter les manquantes dans `extraBeads`.
+
+### 2026-10-15 — Sur-mesure « revient très vite » : explication pour l'atelier
+- **Statut :** ✅
+- **Problème :** le sur-mesure affichait de nouveau « Le configurateur revient très vite » en local.
+- **Cause :** aucune bobine en stock (stock local remis à zéro après les tests) : depuis le stock de fil, le configurateur ne s'ouvre qu'avec au moins une bobine cochée. Rien ne l'expliquait.
+- **Correctif :** les visiteurs voient toujours « revient très vite » ; un admin connecté voit en plus la raison et le lien pour la régler (« coche tes bobines dans Stock de fil », ou aucun produit marqué « Produit du configurateur »).
+- **Fichiers :** `src/app/configurateur/page.tsx`
+- **Vérification :** typecheck OK · lint OK · en local, visiteur : message seul, sans l'indication admin. Vue admin non testée dans le navigateur (pas de session admin).
+- **Notes :** pour rouvrir le sur-mesure : `/admin/fils` → cocher au moins une bobine → Enregistrer. Non commité.
+
 ### 2026-10-15 — Couleur du fil au choix sur chaque article, d'après le stock de bobines
 - **Statut :** ✅
 - **Problème :** chaque nouvel article devait avoir ses couleurs créées automatiquement à partir des fils disponibles (`LINHASITA_COULEURS.md` / Stock de fil), sans ressaisie.
 - **Correctif :** champ `Product.threadChoice` (migration `20261015150000_product_thread_choice`, vrai par défaut, y compris pour les articles existants). Fiche produit admin : case « Couleur du fil au choix », cochée par défaut pour un nouvel article. Fiche article : choix « Couleur du fil » en pastilles, alimenté en direct par les bobines cochées dans `/admin/fils` (rien à ressaisir quand le stock change ; masqué si aucune bobine en stock). Ajout au panier : bobine obligatoire dès qu'il y en a en stock, refusée si elle a été retirée entre-temps ; le libellé (« Vert foncé · ciré n° 87 ») est enregistré dans les options de la ligne et s'affiche dans le panier, la commande et l'admin. Enregistrer le stock rafraîchit tout le site.
 - **Fichiers :** `prisma/schema.prisma`, `prisma/migrations/20261015150000_product_thread_choice/migration.sql`, `src/lib/admin/actions.ts`, `src/components/admin/product-form.tsx`, `src/app/admin/produits/[id]/page.tsx`, `src/app/boutique/[slug]/page.tsx`, `src/components/add-to-cart-form.tsx`, `src/lib/cart/actions.ts`, `src/lib/threads/labels.ts`
 - **Vérification :** typecheck OK · lint OK · migration appliquée en local, schéma sans écart · navigateur : `/boutique/perle-d-ecume` propose les 4 bobines de test, choix du n° 87 → panier « Couleur du fil : Vert foncé · ciré n° 87 » ; bobine retirée du stock pendant que la page est ouverte → « Cette couleur de fil n'est plus disponible ». Case admin non testée dans le navigateur (pas de session admin), couverte par le typecheck. Stock de test remis à zéro.
-- **Notes :** local uniquement. Le serveur de dev doit être redémarré après une migration (client Prisma). La photo de l'article ne change pas encore de couleur (possible avec un masque comme pour le configurateur). Le prix ne dépend pas de la couleur. En prod : migrations à appliquer (`-Migrate`) puis cocher les bobines en ligne.
+- **Notes :** commité et poussé sur GitHub (`73a652d`), pas encore déployé. Le serveur de dev doit être redémarré après une migration (client Prisma). La photo de l'article ne change pas encore de couleur (possible avec un masque comme pour le configurateur). Le prix ne dépend pas de la couleur. En prod : migrations à appliquer (`-Migrate`) puis cocher les bobines en ligne.
 
 ### 2026-10-15 — Configurateur : aperçu « Photo » dont seul le fil change de couleur
 - **Statut :** ✅
@@ -46,7 +72,7 @@ _(bugs remontés mais pas encore traités)_
 - **Correctif :** `scripts/build-photo-masks.mjs` calcule pour chaque photo un masque du fil (teinte / saturation / luminosité propres à la photo, plus grandes zones connexes, +1 pixel pour les bords) : `bracelet-atelier-1.masque.png` (fil bleu-gris, perles nacrées) et `bracelet-atelier-2.masque.png` (fil prune, quartz rose). Composant `PhotoRecolor` (canvas) : chaque pixel du fil garde son ombre (luminance rapportée à celle du fil d'origine) et prend la couleur de la bobine choisie ; perles, coquillage et fond restent intacts. Dans le configurateur, Arabesques → photo 1 et Vagues → photo 2, avec un sélecteur **Photo / 3D** (photo par défaut) ; Tresse garde le croquis.
 - **Fichiers :** `scripts/build-photo-masks.mjs`, `public/images/produits/bracelet-atelier-1.masque.png`, `public/images/produits/bracelet-atelier-2.masque.png`, `src/components/photo-recolor.tsx`, `src/lib/configurator.ts`, `src/components/configurator.tsx`
 - **Vérification :** typecheck OK · lint OK · aperçus contrôlés à l'œil (corail, sable, vert) sur les deux photos · navigateur (`npm run dev`) : photo recolorée en direct au clic sur une bobine (n° 35 → fil terracotta, perles nacrées intactes), Vagues en photo, bascule 3D OK, Tresse sans sélecteur, aucune erreur console. Stock de test remis à zéro.
-- **Notes :** local uniquement, pas encore déployé. Le choix « Perles argentées / dorées » ne change pas la photo (ce sont les perles de la photo) : sur Vagues, la photo montre du quartz rose alors que le motif 3D ne propose que or / argent, à harmoniser. Le cordon de serrage très fin de la photo 2 n'est que partiellement recoloré. Couleurs à l'écran approximatives (HEX mesurés sur photos de cartelles). Nouvelle photo = ajouter une entrée dans `PHOTOS` du script, le lancer, reporter `refLum` / `contrast` dans `PATTERN_PHOTOS`.
+- **Notes :** commité et poussé sur GitHub (`73a652d`), pas encore déployé. Le choix « Perles argentées / dorées » ne change pas la photo (ce sont les perles de la photo) : sur Vagues, la photo montre du quartz rose alors que le motif 3D ne propose que or / argent, à harmoniser. Le cordon de serrage très fin de la photo 2 n'est que partiellement recoloré. Couleurs à l'écran approximatives (HEX mesurés sur photos de cartelles). Nouvelle photo = ajouter une entrée dans `PHOTOS` du script, le lancer, reporter `refLum` / `contrast` dans `PATTERN_PHOTOS`.
 
 ### 2026-10-15 — Aperçu 3D inaccessible en local : `npm run dev` ne démarrait plus
 - **Statut :** ✅
@@ -55,7 +81,7 @@ _(bugs remontés mais pas encore traités)_
 - **Correctif :** script `dev` → `prisma generate && next dev --webpack` (même compilateur qu'en prod).
 - **Fichiers :** `package.json`
 - **Vérification :** `npm run dev` démarre (« Next.js 16.4.1 (webpack) ») ; `/configurateur` : modèles Arabesques (`bracelet-perle-d-ecume.glb`) et Vagues (`quartz-rose/bracelet.gltf` + textures) chargés en 200, rendu 3D affiché.
-- **Notes :** pour voir le configurateur en local, cocher au moins une bobine dans `/admin/fils`. Écart de version Next entre `package.json` (16.4.0) et `node_modules` (16.4.1) à surveiller. En prod, `/configurateur` a un autre problème (voir « À faire »).
+- **Notes :** commité et poussé sur GitHub (`73a652d`). Pour voir le configurateur en local, cocher au moins une bobine dans `/admin/fils`. Écart de version Next entre `package.json` (16.4.0) et `node_modules` (16.4.1) à surveiller. En prod, `/configurateur` a un autre problème (voir « À faire »).
 
 ### 2026-10-15 — Stock de fil Linhasita : bobines cochées dans l'admin, seules proposées au configurateur
 - **Statut :** ✅
@@ -63,7 +89,7 @@ _(bugs remontés mais pas encore traités)_
 - **Correctif :** nouvelle table `ThreadColor` avec les 333 coloris de `LINHASITA_COULEURS.md` (170 Encerado, 9 PE pailletés, 154 Bonderizado), insérés par la migration elle-même (générée par `scripts/import-linhasita.mjs`), tous « hors stock » au départ. Page admin **Stock de fil** (`/admin/fils`) : cases à cocher par gamme et famille, recherche par **code Linhasita** (`224`, plusieurs codes `224, 37, M19`, « 4 » trouve aussi « 04 ») ou par teinte / HEX, bouton « Cocher les N résultats », « Tout cocher » par famille, filtre « Seulement mes bobines », compteur et alerte de modifications non enregistrées. Le configurateur ne montre que les bobines en stock (teinte + référence, ex. « Turquoise · ciré n° 224 ») et affiche « Le configurateur revient très vite » s'il n'y en a aucune. À l'ajout au panier, le serveur refuse un fil retiré du stock entre-temps et enregistre la couleur et le libellé de la bobine depuis la base : panier, commande et admin indiquent quelle bobine utiliser. Les anciens paniers et commandes gardent leurs noms de couleurs.
 - **Fichiers :** `prisma/schema.prisma`, `prisma/migrations/20261015140000_thread_stock/migration.sql`, `scripts/import-linhasita.mjs`, `src/lib/threads/labels.ts`, `src/lib/threads/queries.ts`, `src/lib/admin/actions.ts`, `src/app/admin/fils/page.tsx`, `src/app/admin/layout.tsx`, `src/components/admin/thread-stock-form.tsx`, `src/lib/configurator.ts`, `src/lib/types.ts`, `src/lib/cart/actions.ts`, `src/components/configurator.tsx`, `src/app/configurateur/page.tsx`
 - **Vérification :** typecheck OK · lint OK · migration appliquée en local, schéma sans écart (`migrate diff` vide) · navigateur (dev local, admin de test temporaire supprimé ensuite) : recherche `224` → 2 bobines (ciré et polyamide), `218, 37 m19 4` → 7 bobines dans les 3 gammes, enregistrement puis rechargement conservent les cases, le configurateur affiche exactement les 8 bobines cochées ; 3 fils choisis → libellés et prix OK ; fil retiré du stock avant l'envoi → refusé avec message ; ajout au panier → « Fils : Beige · ciré Palha, Turquoise · ciré n° 224 » ; stock vide → message d'attente.
-- **Notes :** local uniquement, pas encore déployé ni commité. Stock local remis à zéro : à cocher dans `/admin/fils`. Au déploiement, la migration doit passer en prod (`deploy.ps1 -Migrate`), puis cocher les bobines **sur le site en ligne**, sinon le configurateur y affichera « revient très vite ». Ajoute une requête à `/configurateur`, page qui a déjà un souci en prod (voir « À faire »). Le contrôle du stock se fait à l'ajout au panier, pas au paiement. L'ancien `src/data/linhasita-colors.json` (autre conversation) n'est pas utilisé.
+- **Notes :** commité et poussé sur GitHub (`73a652d`), pas encore déployé. Stock local remis à zéro : à cocher dans `/admin/fils`. Au déploiement, la migration doit passer en prod (`deploy.ps1 -Migrate`), puis cocher les bobines **sur le site en ligne**, sinon le configurateur y affichera « revient très vite ». Ajoute une requête à `/configurateur`, page qui a déjà un souci en prod (voir « À faire »). Le contrôle du stock se fait à l'ajout au panier, pas au paiement. L'ancien `src/data/linhasita-colors.json` (autre conversation) n'est pas utilisé.
 
 ### 2026-10-15 — Mention « fil de qualité premium, résistant à l'eau et à l'usure »
 - **Statut :** ✅
@@ -71,7 +97,7 @@ _(bugs remontés mais pas encore traités)_
 - **Correctif :** ajout de « Tissé uniquement avec du fil de qualité premium, résistant à l'eau et à l'usure. » sous le titre de l'accueil ; sur les fiches produit, la ligne « Fil ciré, résiste à l'eau. Sans métal. » devient « Tissé uniquement avec du fil de qualité premium, résistant à l'eau et à l'usure. Sans métal. »
 - **Fichiers :** `src/app/page.tsx`, `src/app/boutique/[slug]/page.tsx`
 - **Vérification :** typecheck OK · en local (port 3000), texte présent sur `/` et `/boutique/perle-d-ecume`.
-- **Notes :** local uniquement, pas encore déployé.
+- **Notes :** commité et poussé sur GitHub (`73a652d`), pas encore déployé.
 
 ### 2026-10-15 — CSP à nonce : `'unsafe-inline'` retiré de `script-src` (middleware edge)
 - **Statut :** 🚀

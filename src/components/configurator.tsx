@@ -108,12 +108,12 @@ export function Configurator({
             <PhotoRecolor
               photo={photo}
               threadHex={config.threads[0]}
-              alt={`Photo du bracelet, fil recoloré : ${describeConfig(config).join(", ")}`}
+              metal={bead?.metal ?? "argent"}
+              alt={`Photo du bracelet, fil et perles recolorés : ${describeConfig(config).join(", ")}`}
               className="aspect-[3/4] rounded-md"
             />
             <p className="mt-2 text-xs text-ink-3">
-              Le vrai bracelet, avec la couleur de fil choisie. Les {photo.beads} sont celles de la photo ; les couleurs à l'écran
-              restent approximatives.
+              Le vrai bracelet, repeint avec ton fil et tes perles. Les couleurs à l'écran restent approximatives.
             </p>
           </>
         ) : modelUrl ? (

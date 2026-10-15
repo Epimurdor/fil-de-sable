@@ -41,7 +41,8 @@ export const PATTERN_MODELS: Partial<Record<string, string>> = {
 
 // Photos recolorables par motif : le masque (scripts/build-photo-masks.mjs) dit où est le fil ; seul le fil
 // change de couleur, les perles et le décor restent ceux de la photo. refLum et contrast sont affichés par le script.
-export type PatternPhoto = { src: string; mask: string; refLum: number; contrast: number; beads: string };
+// beadMask / beadRefLum : les perles de la photo, repeintes en or ou en argent selon le choix du client.
+export type PatternPhoto = { src: string; mask: string; refLum: number; contrast: number; beadMask: string; beadRefLum: number };
 
 export const PATTERN_PHOTOS: Partial<Record<string, PatternPhoto>> = {
   arabesques: {
@@ -49,15 +50,24 @@ export const PATTERN_PHOTOS: Partial<Record<string, PatternPhoto>> = {
     mask: "/images/produits/bracelet-atelier-1.masque.png",
     refLum: 0.0289,
     contrast: 0.8,
-    beads: "perles nacrées",
+    beadMask: "/images/produits/bracelet-atelier-1.perles.png",
+    beadRefLum: 0.2484,
   },
   vagues: {
     src: "/images/produits/bracelet-atelier-2.jpg",
     mask: "/images/produits/bracelet-atelier-2.masque.png",
     refLum: 0.0108,
     contrast: 0.55,
-    beads: "perles de quartz rose",
+    beadMask: "/images/produits/bracelet-atelier-2.perles.png",
+    beadRefLum: 0.187,
   },
+};
+
+// Teinte et contraste des perles repeintes sur la photo (aperçus : scripts/build-photo-masks.mjs).
+// L'argent est plus foncé et plus contrasté que dans la 3D : sans reflets d'environnement, il paraîtrait blanc.
+export const PHOTO_METALS: Record<BeadMetal, { hex: string; contrast: number }> = {
+  or: { hex: "#E2B65A", contrast: 0.9 },
+  argent: { hex: "#B9BEC5", contrast: 1.6 },
 };
 
 export function beadsForPattern(pattern: string) {

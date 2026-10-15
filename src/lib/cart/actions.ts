@@ -3,7 +3,8 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
-import { getCartId, getOrCreateCartId } from "./cart";
+import { consumeRateLimit, getClientIp, tooManyAttemptsMessage } from "@/lib/security/rate-limit";
+import { getOrCreateCartId, getUsableCartId } from "./cart";
 import { productInclude } from "@/lib/products/queries";
 import { resolveOptions } from "@/lib/products/pricing";
 import { customConfigSchema, customPriceCents } from "@/lib/configurator";
@@ -12,13 +13,25 @@ import type { SelectedOptions } from "@/lib/types";
 export type CartActionState = { error?: string };
 
 const MAX_QTY = 10;
+// Chaque ajout peut créer un panier en base : on borne le spam par IP.
+const ADDS_PER_IP = { limit: 30, windowMs: 60_000 };
+
+async function checkAddLimit(): Promise<CartActionState | null> {
+  const limit = consumeRateLimit(`cart:add:${await getClientIp()}`, ADDS_PER_IP);
+  return limit.ok ? null : { error: tooManyAttemptsMessage(limit.retryAfterSeconds) };
+}
 
 function selectedFromForm(formData: FormData): SelectedOptions {
-  const out: SelectedOptions = {};
+  const out: SelectedOptions = Object.create(null);
   for (const [key, value] of formData.entries()) {
-    if (key.startsWith("opt:") && typeof value === "string" && value) out[key.slice(4)] = value;
+    if (key.startsWith("opt:") && typeof value === "string" && value) {
+      const optName = key.slice(4);
+      if (optName !== "__proto__" && optName !== "constructor" && optName !== "prototype") {
+        out[optName] = value.slice(0, 100);
+      }
+    }
   }
-  return out;
+  return Object.assign({}, out);
 }
 
 function clampQty(raw: FormDataEntryValue | null): number {
@@ -27,6 +40,9 @@ function clampQty(raw: FormDataEntryValue | null): number {
 }
 
 export async function addToCart(_prev: CartActionState, formData: FormData): Promise<CartActionState> {
+  const limited = await checkAddLimit();
+  if (limited) return limited;
+
   const productId = String(formData.get("productId") ?? "");
   const quantity = clampQty(formData.get("quantity"));
 
@@ -62,9 +78,16 @@ export async function addToCart(_prev: CartActionState, formData: FormData): Pro
 }
 
 export async function addCustomBracelet(_prev: CartActionState, formData: FormData): Promise<CartActionState> {
+  const limited = await checkAddLimit();
+  if (limited) return limited;
+
+  const rawConfig = String(formData.get("config") ?? "");
+  if (!rawConfig || rawConfig.length > 2000) {
+    return { error: "Configuration invalide ou trop volumineuse." };
+  }
   let json: unknown;
   try {
-    json = JSON.parse(String(formData.get("config") ?? ""));
+    json = JSON.parse(rawConfig);
   } catch {
     return { error: "Configuration illisible." };
   }
@@ -92,7 +115,7 @@ export async function addCustomBracelet(_prev: CartActionState, formData: FormDa
 }
 
 export async function updateCartItem(formData: FormData): Promise<void> {
-  const cartId = await getCartId();
+  const cartId = await getUsableCartId();
   if (!cartId) return;
   const itemId = String(formData.get("itemId") ?? "");
   const quantity = Number(formData.get("quantity"));
@@ -110,7 +133,7 @@ export async function updateCartItem(formData: FormData): Promise<void> {
 }
 
 export async function removeCartItem(formData: FormData): Promise<void> {
-  const cartId = await getCartId();
+  const cartId = await getUsableCartId();
   if (!cartId) return;
   await prisma.cartItem.deleteMany({ where: { id: String(formData.get("itemId") ?? ""), cartId } });
   revalidatePath("/", "layout");

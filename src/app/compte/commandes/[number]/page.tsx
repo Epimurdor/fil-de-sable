@@ -3,8 +3,9 @@ import { notFound } from "next/navigation";
 import { OrderTimeline } from "@/components/order-timeline";
 import { ProductVisual } from "@/components/product-visual";
 import { StatusBadge } from "@/components/status-badge";
-import { ButtonLink } from "@/components/ui/button";
+import { SubmitButton } from "@/components/forms/submit-button";
 import { requireUser } from "@/lib/auth/session";
+import { startPayment } from "@/lib/payment/actions";
 import { BEADS, describeConfig } from "@/lib/configurator";
 import { formatDate, formatPrice } from "@/lib/format";
 import { getOrderForUser } from "@/lib/orders/queries";
@@ -18,16 +19,16 @@ export default async function OrderPage({
   searchParams,
 }: {
   params: Promise<{ number: string }>;
-  searchParams: Promise<{ merci?: string }>;
+  searchParams: Promise<{ merci?: string; paiement?: string }>;
 }) {
-  const [{ number }, { merci }] = await Promise.all([params, searchParams]);
+  const [{ number }, { merci, paiement }] = await Promise.all([params, searchParams]);
   const user = await requireUser(`/compte/commandes/${number}`);
   const order = await getOrderForUser(number, user.id);
   if (!order) notFound();
 
   return (
     <div className="space-y-8">
-      {merci && (
+      {merci && order.status !== "pending" && (
         <div className="flex items-start gap-3 rounded-md bg-accent-soft p-5 text-accent-strong">
           <p>
             <span className="font-semibold">Merci !</span> Ta commande est bien reçue. L'atelier s'y met, et tu suivras
@@ -44,10 +45,25 @@ export default async function OrderPage({
         <StatusBadge status={order.status} className="text-sm" />
       </div>
 
+      {order.status === "pending" && paiement === "erreur" && (
+        <p role="alert" className="rounded-md bg-red-50 px-4 py-3 text-sm text-red-700">
+          Le paiement n'a pas pu être lancé. Réessaie dans quelques instants.
+        </p>
+      )}
+
       {order.status === "pending" && (
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-accent/60 bg-accent-soft p-5">
-          <p className="text-sm text-ink">Cette commande attend son paiement.</p>
-          <ButtonLink href={`/paiement/simulation/${order.id}`}>Payer {formatPrice(order.totalCents)}</ButtonLink>
+          <p className="text-sm text-ink">
+            {merci
+              ? "Paiement en cours de confirmation : rafraîchis la page dans un instant."
+              : paiement === "annule"
+                ? "Paiement annulé. Ta commande t'attend : tu peux la régler quand tu veux."
+                : "Cette commande attend son paiement."}
+          </p>
+          <form action={startPayment}>
+            <input type="hidden" name="orderId" value={order.id} />
+            <SubmitButton pendingText="Redirection…">Payer {formatPrice(order.totalCents)}</SubmitButton>
+          </form>
         </div>
       )}
 

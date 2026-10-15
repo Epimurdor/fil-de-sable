@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { cn } from "@/lib/cn";
+import { isLocalImagePath } from "@/lib/images";
 import type { ProductKind } from "@/lib/types";
 
 type Props = {
@@ -18,7 +19,8 @@ type Props = {
 };
 
 export function ProductVisual({ colors, kind = "bracelet", imageUrl, alt, beadHex, pattern, className, priority, sizes, sketch }: Props) {
-  if (imageUrl) {
+  // Un chemin non local ferait planter next/image (domaine non autorisé) : on retombe sur le visuel par défaut.
+  if (isLocalImagePath(imageUrl)) {
     return (
       <div className={cn("relative overflow-hidden bg-paper-2", className)}>
         <Image

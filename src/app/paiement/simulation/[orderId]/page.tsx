@@ -4,6 +4,7 @@ import { SubmitButton } from "@/components/forms/submit-button";
 import { requireUser } from "@/lib/auth/session";
 import { formatPrice } from "@/lib/format";
 import { confirmMockPayment } from "@/lib/payment/actions";
+import { isMockPaymentEnabled } from "@/lib/payment/provider";
 import { getOrderForPayment } from "@/lib/orders/queries";
 
 export const metadata: Metadata = { title: "Paiement" };
@@ -15,6 +16,7 @@ export default async function MockPaymentPage({
   params: Promise<{ orderId: string }>;
   searchParams: Promise<{ echec?: string }>;
 }) {
+  if (!isMockPaymentEnabled()) notFound();
   const user = await requireUser("/panier");
   const [{ orderId }, { echec }] = await Promise.all([params, searchParams]);
   const order = await getOrderForPayment(orderId, user.id);

@@ -5,26 +5,33 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth/session";
+import { isLocalImagePath } from "@/lib/images";
 import { isOrderStatus } from "@/lib/orders/status";
 import { parseOptionsText } from "./options-text";
 
 export type AdminState = { error?: string; success?: string };
 
 const productSchema = z.object({
-  id: z.string().optional(),
-  name: z.string().trim().min(1, "Nom requis."),
+  id: z.string().max(50).optional(),
+  name: z.string().trim().min(1, "Nom requis.").max(120, "Nom trop long (120 caractères max)."),
   slug: z
     .string()
     .trim()
+    .max(100, "Slug trop long (100 caractères max).")
     .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Slug : minuscules, chiffres et tirets uniquement."),
-  tagline: z.string().trim().max(120).optional(),
-  description: z.string().trim().min(10, "Description trop courte."),
-  price: z.string().trim().regex(/^\d+([.,]\d{1,2})?$/, "Prix invalide (ex : 22 ou 22,50)."),
+  tagline: z.string().trim().max(160).optional(),
+  description: z.string().trim().min(10, "Description trop courte.").max(3000, "Description trop longue (3000 caractères max)."),
+  price: z.string().trim().regex(/^\d{1,5}([.,]\d{1,2})?$/, "Prix invalide (ex : 22 ou 22,50, max 99999,99 €)."),
   leadTimeDays: z.coerce.number().int().min(1, "Délai minimum : 1 jour.").max(90),
-  categoryId: z.string().min(1, "Catégorie requise."),
-  colors: z.string().trim().optional(),
-  imageUrl: z.string().trim().optional(),
-  optionsText: z.string().optional(),
+  categoryId: z.string().min(1, "Catégorie requise.").max(50),
+  colors: z.string().trim().max(500).optional(),
+  imageUrl: z
+    .string()
+    .trim()
+    .max(500)
+    .refine((v) => v === "" || isLocalImagePath(v), "Photo : chemin local du type /images/produits/mon-bracelet.jpg (jpg, png, webp, avif).")
+    .optional(),
+  optionsText: z.string().max(5000, "Texte d'options trop long (5000 caractères max).").optional(),
   isActive: z.string().optional(),
   isFeatured: z.string().optional(),
   isCustomizable: z.string().optional(),
@@ -91,7 +98,7 @@ export async function saveProduct(_prev: AdminState, formData: FormData): Promis
 export async function deleteProduct(formData: FormData): Promise<void> {
   await requireAdmin();
   const id = String(formData.get("id") ?? "");
-  if (id) await prisma.product.delete({ where: { id } });
+  if (id) await prisma.product.deleteMany({ where: { id } });
   revalidatePath("/", "layout");
   redirect("/admin/produits");
 }
@@ -101,6 +108,7 @@ export async function updateOrderStatus(_prev: AdminState, formData: FormData): 
   const orderId = String(formData.get("orderId") ?? "");
   const status = String(formData.get("status") ?? "");
   const note = String(formData.get("note") ?? "").trim() || null;
+  if (note && note.length > 500) return { error: "Note trop longue (500 caractères max)." };
   if (!isOrderStatus(status)) return { error: "Statut inconnu." };
 
   const order = await prisma.order.findUnique({ where: { id: orderId }, select: { id: true } });

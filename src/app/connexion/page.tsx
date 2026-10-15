@@ -2,13 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { LoginForm } from "@/components/auth-forms";
-import { getCurrentUser } from "@/lib/auth/session";
+import { getCurrentUser, sanitizeNextUrl } from "@/lib/auth/session";
 
 export const metadata: Metadata = { title: "Connexion" };
 
 export default async function LoginPage({ searchParams }: { searchParams: Promise<{ next?: string }> }) {
   const { next = "/compte" } = await searchParams;
-  if (await getCurrentUser()) redirect(next.startsWith("/") ? next : "/compte");
+  if (await getCurrentUser()) redirect(sanitizeNextUrl(next));
 
   return (
     <div className="mx-auto max-w-md px-4 py-16 sm:px-6">

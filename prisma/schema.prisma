@@ -1,12 +1,13 @@
-// Schema volontairement sans enum ni Json natif pour rester portable SQLite (dev) -> PostgreSQL (prod).
-// Les statuts et les JSON sont types cote TypeScript dans src/lib.
+// PostgreSQL en dev comme en prod (Wasmer Edge). Statuts et JSON stockes en texte, types cote TypeScript dans src/lib.
 
 generator client {
-  provider = "prisma-client-js"
+  provider   = "prisma-client-js"
+  // Client sans moteur Rust natif (driver adapter @prisma/adapter-pg) : indispensable sous WebAssembly (Wasmer Edge).
+  engineType = "client"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -129,7 +130,7 @@ model ShippingMethod {
 
 model Order {
   id              String       @id @default(cuid())
-  number          String       @unique // FDS-2026-0001
+  number          String       @unique // FDS-2026-X8K9MQ (suffixe aleatoire)
   userId          String
   user            User         @relation(fields: [userId], references: [id])
   status          String       @default("pending") // voir ORDER_STATUSES (src/lib/orders/status.ts)

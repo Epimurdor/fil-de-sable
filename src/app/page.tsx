@@ -3,11 +3,12 @@ import Link from "next/link";
 import { ProductCard } from "@/components/product-card";
 import { ButtonLink } from "@/components/ui/button";
 import { formatPrice } from "@/lib/format";
+import { isLocalImagePath } from "@/lib/images";
 import { getFeaturedProducts } from "@/lib/products/queries";
 
 export default async function HomePage() {
   const featured = await getFeaturedProducts(8);
-  const photos = featured.filter((p) => p.imageUrl).slice(0, 2);
+  const photos = featured.filter((p) => isLocalImagePath(p.imageUrl)).slice(0, 2);
   const grid = featured.filter((p) => !photos.includes(p)).slice(0, 4);
 
   return (

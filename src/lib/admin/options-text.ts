@@ -8,6 +8,7 @@ export type ParsedOption = { name: string; values: OptionValue[] };
 const deltaRegex = /\(\s*\+\s*(\d+(?:[.,]\d{1,2})?)\s*\)\s*$/;
 
 export function parseOptionsText(text: string): { ok: true; options: ParsedOption[] } | { ok: false; error: string } {
+  if (text.length > 5000) return { ok: false, error: "Texte trop volumineux (5000 caractères max)." };
   const options: ParsedOption[] = [];
   const lines = text
     .split(/\r?\n/)

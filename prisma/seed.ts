@@ -1,8 +1,7 @@
 // Exécuté par `pnpm db:seed` (Node 24 lit le TypeScript nativement). Idempotent : upserts partout.
-import { PrismaClient } from "@prisma/client";
 import { hashPassword } from "../src/lib/auth/password.ts";
-
-const prisma = new PrismaClient();
+// Même client que l'app (driver adapter Postgres, DATABASE_URL ou variables DB_* de Wasmer).
+import { prisma } from "../src/lib/db.ts";
 
 // Palette de fils (hex) utilisée par le visuel généré et le configurateur.
 const P = {
@@ -247,17 +246,41 @@ const shippingMethods = [
   },
 ];
 
-async function main() {
-  const adminEmail = process.env.SEED_ADMIN_EMAIL ?? "admin@fildesable.fr";
-  const adminPassword = process.env.SEED_ADMIN_PASSWORD;
-  if (!adminPassword) throw new Error("SEED_ADMIN_PASSWORD manquant dans .env");
+// Mots de passe publiés (anciens exemples, valeurs triviales) : jamais acceptés pour l'admin.
+const FORBIDDEN_ADMIN_PASSWORDS = new Set(["atelier-2026", "admin", "password", "motdepasse", "changeme", "fildesable"]);
 
+function assertStrongAdminPassword(password: string | undefined): asserts password is string {
+  const problems: string[] = [];
+  if (!password) problems.push("SEED_ADMIN_PASSWORD manquant dans .env");
+  else {
+    if (password.length < 14) problems.push("14 caractères minimum");
+    if (FORBIDDEN_ADMIN_PASSWORDS.has(password.toLowerCase())) problems.push("mot de passe connu publiquement");
+    const classes = [/[a-z]/, /[A-Z]/, /\d/, /[^A-Za-z0-9]/].filter((re) => re.test(password)).length;
+    if (classes < 3) problems.push("au moins 3 types de caractères parmi minuscules, majuscules, chiffres, symboles");
+  }
+  if (problems.length) {
+    throw new Error(
+      `Sécurité : SEED_ADMIN_PASSWORD trop faible (${problems.join(", ")}).\n` +
+        `Génère-en un, par ex. : node -e "console.log(require('crypto').randomBytes(18).toString('base64url'))"`,
+    );
+  }
+}
+
+async function main() {
+  const adminEmail = process.env.SEED_ADMIN_EMAIL;
+  if (!adminEmail) throw new Error("SEED_ADMIN_EMAIL manquant dans .env");
+  const adminPassword = process.env.SEED_ADMIN_PASSWORD;
+  assertStrongAdminPassword(adminPassword);
+  const adminPasswordHash = await hashPassword(adminPassword);
+
+  // Le seed fait foi : relancer le seed remplace aussi un ancien mot de passe admin (ex. celui par défaut).
   await prisma.user.upsert({
     where: { email: adminEmail },
-    update: { role: "admin" },
+    // ...et révoque les sessions ouvertes avec l'ancien.
+    update: { role: "admin", passwordHash: adminPasswordHash, sessions: { deleteMany: {} } },
     create: {
       email: adminEmail,
-      passwordHash: hashPassword(adminPassword),
+      passwordHash: adminPasswordHash,
       firstName: "Atelier",
       lastName: "Fil de Sable",
       role: "admin",

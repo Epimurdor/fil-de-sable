@@ -43,16 +43,18 @@ export const EXTRA_THREAD_CENTS = 100; // chaque couleur de fil supplémentaire
 const hexRegex = /^#[0-9a-f]{6}$/i;
 const allowedHex = new Set<string>(THREAD_PALETTE.map((t) => t.hex.toLowerCase()));
 
-export const customConfigSchema = z.object({
-  threads: z
-    .array(z.string().regex(hexRegex))
-    .min(1, "Choisis au moins une couleur de fil.")
-    .max(3, "Trois couleurs maximum.")
-    .refine((arr) => arr.every((h) => allowedHex.has(h.toLowerCase())), "Couleur de fil inconnue."),
-  bead: z.enum(BEADS.map((b) => b.code) as [string, ...string[]]),
-  size: z.enum(SIZES.map((s) => s.code) as [string, ...string[]]),
-  pattern: z.enum(PATTERNS.map((p) => p.code) as [string, ...string[]]),
-});
+export const customConfigSchema = z
+  .object({
+    threads: z
+      .array(z.string().regex(hexRegex))
+      .min(1, "Choisis au moins une couleur de fil.")
+      .max(3, "Trois couleurs maximum.")
+      .refine((arr) => arr.every((h) => allowedHex.has(h.toLowerCase())), "Couleur de fil inconnue."),
+    bead: z.enum(BEADS.map((b) => b.code) as [string, ...string[]]),
+    size: z.enum(SIZES.map((s) => s.code) as [string, ...string[]]),
+    pattern: z.enum(PATTERNS.map((p) => p.code) as [string, ...string[]]),
+  })
+  .strict();
 
 export function customPriceCents(basePriceCents: number, config: CustomConfig): number {
   const bead = BEADS.find((b) => b.code === config.bead);

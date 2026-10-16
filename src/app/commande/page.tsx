@@ -4,6 +4,7 @@ import { CheckoutForm } from "@/components/checkout-form";
 import { requireUser } from "@/lib/auth/session";
 import { cartSummary, getCart } from "@/lib/cart/cart";
 import { getDefaultAddress } from "@/lib/orders/checkout";
+import { isMockPaymentEnabled } from "@/lib/payment/provider";
 import { computeShippingCents, getShippingMethods } from "@/lib/shipping";
 
 export const metadata: Metadata = { title: "Commande" };
@@ -39,6 +40,8 @@ export default async function CheckoutPage() {
           items={items.map((it) => ({ id: it.id, name: it.product.name, quantity: it.quantity, unitPriceCents: it.unitPriceCents }))}
           subtotalCents={subtotalCents}
           leadTimeDays={maxLeadTimeDays}
+          hasCustom={items.some((it) => Boolean(it.customConfig))}
+          mockPayment={isMockPaymentEnabled()}
         />
       </div>
     </div>

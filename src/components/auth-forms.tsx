@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState } from "react";
 import { SubmitButton } from "@/components/forms/submit-button";
 import { login, register, type AuthState } from "@/lib/auth/actions";
@@ -56,6 +57,10 @@ export function RegisterForm({ next }: { next: string }) {
         <input id="password" name="password" type="password" className="field" autoComplete="new-password" minLength={8} required />
       </div>
       <ErrorLine error={state.error} />
+      <p className="text-xs text-ink-3">
+        Ces données servent à gérer ton compte et tes commandes. Détails et droits dans la{" "}
+        <Link href="/confidentialite" target="_blank" className="underline underline-offset-2">politique de confidentialité</Link>.
+      </p>
       <SubmitButton pendingText="Création du compte…" className="w-full">Créer mon compte</SubmitButton>
     </form>
   );

@@ -3,7 +3,7 @@ import { randomInt } from "node:crypto";
 import { z } from "zod";
 import type { ShippingMethod } from "@prisma/client";
 import { prisma } from "@/lib/db";
-import { site } from "@/config/site";
+import { legal, site } from "@/config/site";
 import type { CartWithItems } from "@/lib/cart/cart";
 import { customPriceCents } from "@/lib/configurator";
 import { getPaymentProviderName } from "@/lib/payment/provider";
@@ -29,6 +29,9 @@ export const checkoutSchema = z.object({
   customerNote: optionalText(500),
   shippingCode: z.string().min(1, "Choisis un mode de livraison.").max(50),
   saveAddress: z.string().max(10).optional(),
+  // Cases à cocher : présentes (« on ») uniquement si cochées. Contrôle serveur, pas seulement `required` HTML.
+  acceptCgv: z.literal("on", "Accepte les conditions générales de vente pour commander."),
+  acceptCustom: z.literal("on").optional(),
 });
 
 export type CheckoutInput = z.infer<typeof checkoutSchema>;
@@ -113,7 +116,15 @@ export async function createOrderFromCart(params: {
                 customConfig: it.customConfig,
               })),
             },
-            events: { create: { status: "pending", note: "Commande créée, en attente de paiement" } },
+            // Preuve d'acceptation des CGV (version) et de la renonciation à la rétractation pour le sur mesure.
+            events: {
+              create: {
+                status: "pending",
+                note: `Commande créée, en attente de paiement. CGV ${legal.cgvVersion} acceptées${
+                  input.acceptCustom ? ", sur mesure sans rétractation reconnu" : ""
+                }.`,
+              },
+            },
           },
           include: { items: true },
         });

@@ -31,6 +31,12 @@ export function SiteFooter() {
           <li className="pt-4 text-ink-3">Livraison offerte dès 60 €. Lettre suivie, Mondial Relay ou Colissimo.</li>
         </ul>
       </div>
+      <nav aria-label="Informations légales" className="mx-auto flex max-w-6xl flex-wrap gap-x-5 gap-y-1 px-4 pb-3 text-xs text-ink-3 sm:px-6">
+        <Link href="/mentions-legales" className="hover:text-ink">Mentions légales</Link>
+        <Link href="/cgv" className="hover:text-ink">CGV</Link>
+        <Link href="/retractation" className="hover:text-ink">Rétractation</Link>
+        <Link href="/confidentialite" className="hover:text-ink">Confidentialité et cookies</Link>
+      </nav>
       <p className="mx-auto max-w-6xl px-4 pb-8 text-xs text-ink-3 sm:px-6">© {new Date().getFullYear()} {site.name}. Fait main en Alsace par Nathalie</p>
     </footer>
   );

@@ -14,8 +14,10 @@ export function buildContentSecurityPolicy({ nonce, dev }: { nonce?: string; dev
 
   return [
     "default-src 'self'",
-    // 'unsafe-eval' uniquement en développement : React s'en sert pour reconstruire les piles d'appels.
-    `script-src ${scriptSrc}${dev ? " 'unsafe-eval'" : ""}`,
+    // 'wasm-unsafe-eval' : compilation WebAssembly seulement (décodeur meshopt des modèles 3D GLB),
+    // sans autoriser eval(). 'unsafe-eval' uniquement en développement : React s'en sert pour
+    // reconstruire les piles d'appels.
+    `script-src ${scriptSrc} 'wasm-unsafe-eval'${dev ? " 'unsafe-eval'" : ""}`,
     // React n'émet jamais d'attribut onclick= / onerror= : un gestionnaire injecté dans un attribut
     // (<img onerror=…>) est bloqué, même quand script-src tolère 'unsafe-inline'.
     "script-src-attr 'none'",
